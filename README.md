@@ -1,32 +1,51 @@
-# React + TypeScript + Vite
+# HIPAA Helper
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A plain-language decision tree that tells you whether a HIPAA Business Associate Agreement (BAA) is required for a given relationship.
 
-Currently, two official plugins are available:
+Answer a short series of questions about who the parties are and what they do with protected health information. The tool walks you to a determination, explains the reasoning, cites the governing regulation, and lists concrete next steps.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What it does
 
-## React Compiler
+- **Guided questions.** Single-choice questions and checklist steps, written in ordinary English rather than regulatory language.
+- **A real answer.** Each result states whether a BAA is required, summarizes why, and links the conclusion to the relevant citations (45 CFR Part 160 and Part 164).
+- **An answer trail.** The result shows every question you were asked and how you answered it, so the determination can be reviewed by someone else.
+- **Subcontractor handling.** If the counterparty is itself a business associate rather than a covered entity, the result flags that the BAA runs down the chain instead of directly to the covered entity.
+- **Print or save.** Results are formatted for printing to PDF so a determination can be filed with the deal record.
+- **Back and reset.** Any answer can be revisited without starting over.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Everything runs in the browser. No answers are transmitted or stored.
 
-## Expanding the Oxlint configuration
+## Not legal advice
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+This is general educational guidance. HIPAA determinations turn on facts this tool does not ask about. Confirm any specific relationship with privacy counsel.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+## Running it locally
+
+```bash
+npm install
+npm run dev
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+Other scripts:
+
+```bash
+npm run build     # type-check and build for production
+npm run preview   # serve the production build
+npm run lint      # oxlint
+```
+
+## Built with
+
+React 19, TypeScript, Vite, Tailwind CSS, Motion, and Lucide icons.
+
+## Project structure
+
+```
+src/
+  data/decisionTree.ts    the questions, results, and citations
+  data/types.ts           node and result types
+  hooks/useDecisionTree.ts  traversal, history, and flags
+  components/             question, checklist, result, and progress UI
+```
+
+To change a question, a result, or a citation, edit `src/data/decisionTree.ts`. The UI renders whatever the tree defines, so no component changes are needed to add or reword a branch.
