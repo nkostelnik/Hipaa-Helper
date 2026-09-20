@@ -49,3 +49,12 @@ src/
 ```
 
 To change a question, a result, or a citation, edit `src/data/decisionTree.ts`. The UI renders whatever the tree defines, so no component changes are needed to add or reword a branch.
+
+## Keeping the skill in sync
+
+The Claude skill in `skill/hipaa-baa-helper/` carries its own copy of the tree in `references/decision-tree.md`. The two are not linked, so any change to a question, result, or citation must be made in both files:
+
+- [ ] Edit `src/data/decisionTree.ts`
+- [ ] Make the same edit in `skill/hipaa-baa-helper/references/decision-tree.md`
+- [ ] Rebuild `skill/hipaa-baa-helper.skill` (zip the `hipaa-baa-helper` folder)
+- [ ] Run `npm run build` to confirm the app still compiles
