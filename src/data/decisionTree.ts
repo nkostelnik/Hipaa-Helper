@@ -290,7 +290,7 @@ export const decisionTree: Record<string, TreeNode> = {
     explanation:
       "HIPAA allows covered entities to disclose PHI for treatment purposes, including referrals and coordination of care between providers, without a Business Associate Agreement. The rationale is that a treating provider is not performing a service on behalf of the referring provider. This exception is limited to genuine treatment coordination; if the same party is also handling billing, hosting, or another administrative function, that separate function may still require a BAA.",
     citations: [
-      { cite: "45 CFR § 164.502(e)(1)(ii)", note: "BAA not required for disclosures to a health care provider for treatment" },
+      { cite: "45 CFR § 160.103", note: "definition of \"business associate\" excludes a health care provider receiving disclosures from a covered entity concerning the treatment of the individual" },
       { cite: "45 CFR § 164.506(c)", note: "permitted uses and disclosures for treatment" },
     ],
     nextSteps: [
@@ -382,6 +382,7 @@ export const decisionTree: Record<string, TreeNode> = {
     citations: [
       { cite: "45 CFR § 160.103", note: "definition of \"business associate\" and \"subcontractor\"" },
       { cite: "45 CFR § 164.502(e)(1)(i)", note: "PHI may not be disclosed to a business associate without satisfactory assurances (a BAA)" },
+      { cite: "45 CFR § 164.502(e)(1)(ii)", note: "the same applies when a business associate discloses PHI to its own subcontractor" },
       { cite: "45 CFR § 164.504(e)", note: "required contents of a Business Associate Agreement" },
     ],
     nextSteps: [
