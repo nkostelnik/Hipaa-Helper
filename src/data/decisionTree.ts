@@ -5,6 +5,11 @@ import type { TreeNode } from "./types"
  *
  * This encodes the analysis HHS uses under the HIPAA Privacy and Security
  * Rules for deciding whether a Business Associate Agreement is required:
+ *   0. Is the user's own organization even a covered entity or a business
+ *      associate? The BAA requirement only ever runs from one of those two
+ *      to their own vendor (45 CFR 164.502(e)(1)(i)-(ii)), so an
+ *      organization that is neither doesn't have a HIPAA-driven duty to
+ *      get one, no matter what the rest of the analysis would say.
  *   1. Is protected health information (PHI) involved at all?
  *   2. Is the recipient part of the covered entity's own workforce?
  *   3. Does the recipient perform a function or service on behalf of the
@@ -26,18 +31,48 @@ import type { TreeNode } from "./types"
  * kept out of the question text itself and explained in help text or
  * citations instead.
  *
+ * Whether the user's own organization is a covered entity or a business
+ * associate (set as the isUserBA flag on step 0) doesn't change which
+ * result node the rest of the tree lands on, it only changes how
+ * result_baa_required is explained: a covered entity's BAA runs straight
+ * to its vendor, a business associate's runs to its subcontractor, but
+ * the requirement itself is the same either way. See the isUserBA check
+ * in ResultCard.tsx.
+ *
  * This is educational guidance, not legal advice. It simplifies real
  * edge cases so they can be reasoned through in plain language; anything
  * routed to "result_unclear" or flagged as close should go to counsel.
  */
-export const startNodeId = "start"
-export const totalStepsEstimate = 5
+export const startNodeId = "entityType"
+export const totalStepsEstimate = 6
 
 export const decisionTree: Record<string, TreeNode> = {
+  entityType: {
+    id: "entityType",
+    type: "question",
+    eyebrow: "Step 1 of 6",
+    intro: "Let's find out who you are in this picture.",
+    text: "Which of these best describes your own organization?",
+    help: "A covered entity is a health care provider that bills electronically (a doctor's office, hospital, clinic, or pharmacy), a health plan, or a health care clearinghouse. A business associate is a vendor that already performs services involving PHI on behalf of a covered entity, under its own BAA. If neither describes you, it's worth double-checking your own status carefully before relying on that, since the line can be less obvious than it looks.",
+    answers: [
+      {
+        label: "We're a covered entity: a health care provider, health plan, or clearinghouse",
+        next: "start",
+        flags: { isUserBA: false },
+      },
+      {
+        label: "We're a business associate, already working under our own BAA with a covered entity",
+        next: "start",
+        flags: { isUserBA: true },
+      },
+      { label: "Neither of these, or we're not sure", next: "result_not_covered" },
+    ],
+  },
+
   start: {
     id: "start",
     type: "question",
-    eyebrow: "Step 1 of 5",
+    eyebrow: "Step 2 of 6",
     intro: "Let's find out whether health information is even part of this.",
     text: "Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
@@ -50,7 +85,7 @@ export const decisionTree: Record<string, TreeNode> = {
   workforce: {
     id: "workforce",
     type: "question",
-    eyebrow: "Step 2 of 5",
+    eyebrow: "Step 3 of 6",
     intro: "Let's find out whether they're on your team or outside it.",
     text: "Is this person actually part of your own team, an employee, intern, or volunteer working under your direct supervision, rather than a separate outside company?",
     help: "Think of this broadly: it covers anyone who works under your organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
@@ -63,7 +98,7 @@ export const decisionTree: Record<string, TreeNode> = {
   whyTheyHaveIt: {
     id: "whyTheyHaveIt",
     type: "question",
-    eyebrow: "Step 3 of 5",
+    eyebrow: "Step 4 of 6",
     intro: "Let's find out why they have this information in the first place.",
     text: "Which of these best describes why this person or company has, or will have, this information?",
     help: "Pick the one that fits best. \"Paid work for us\" covers anything from billing and IT to consulting, transcription, or software that stores patient data. If none of these quite fit, choose the last option and this tool will flag it for a closer look.",
@@ -87,7 +122,7 @@ export const decisionTree: Record<string, TreeNode> = {
   exceptions: {
     id: "exceptions",
     type: "question",
-    eyebrow: "Step 4 of 5",
+    eyebrow: "Step 5 of 6",
     intro: "Let's rule out a few special situations before we go further.",
     text: "A few uncommon situations change the answer. Does any of these describe this specific relationship? If not, just choose the last option.",
     help: "These are all narrow, specific situations. If you're not sure any of them really fits, they probably don't, choose \"None of these.\"",
@@ -110,28 +145,7 @@ export const decisionTree: Record<string, TreeNode> = {
       },
       {
         label: "None of these, it's a normal vendor or service relationship",
-        next: "subcontractorCheck",
-      },
-    ],
-  },
-
-  subcontractorCheck: {
-    id: "subcontractorCheck",
-    type: "question",
-    eyebrow: "Step 5 of 5",
-    intro: "Let's pin down exactly who you're dealing with.",
-    text: "One last detail, just so the result names the right party: are you dealing directly with the hospital, doctor's office, or health plan, or with another vendor who was itself hired by one of those?",
-    help: "If the company you're working with is really a vendor's vendor, brought in to help a vendor that already has its own agreement with the hospital or health plan, HIPAA still requires an agreement, it just runs between you and that vendor instead of the hospital or health plan directly.",
-    answers: [
-      {
-        label: "Directly with the hospital, doctor's office, or health plan",
         next: "result_baa_required",
-        flags: { isSubcontractor: false },
-      },
-      {
-        label: "With another vendor who was itself hired by one of those",
-        next: "result_baa_required",
-        flags: { isSubcontractor: true },
       },
     ],
   },
@@ -139,7 +153,7 @@ export const decisionTree: Record<string, TreeNode> = {
   planSponsorCert: {
     id: "planSponsorCert",
     type: "question",
-    eyebrow: "Step 5 of 5",
+    eyebrow: "Step 6 of 6",
     intro: "Let's check whether the paperwork is already in place.",
     text: "Have the health plan's plan documents been amended to include the required certifications, such as restricting the employer's use of this data to plan administration, prohibiting employment decisions based on it, and keeping it walled off from the employer's other functions?",
     help: "This amendment-and-certification process is what HIPAA requires here instead of a standard Business Associate Agreement.",
@@ -152,7 +166,7 @@ export const decisionTree: Record<string, TreeNode> = {
   deidentifiedChecklist: {
     id: "deidentifiedChecklist",
     type: "checklist",
-    eyebrow: "Step 5 of 5",
+    eyebrow: "Step 6 of 6",
     intro: "Let's confirm the data is genuinely de-identified.",
     text: "HIPAA has a specific test for this, called the Safe Harbor method. Data only counts as de-identified once every one of these has been removed for the individual and for their relatives, employers, and household members. Check off each one that has actually been removed:",
     help: "Removing just a name usually isn't enough. If even one of these categories remains and could point back to a specific person, the data is still PHI and this exception doesn't apply.",
@@ -197,6 +211,24 @@ export const decisionTree: Record<string, TreeNode> = {
     nextSteps: [
       "Double-check that no identifiable health data (even indirectly, like a name plus an appointment time) is actually changing hands.",
       "If the answer is close, treat the data as PHI and re-run this tool, or ask counsel to confirm.",
+    ],
+  },
+
+  result_not_covered: {
+    id: "result_not_covered",
+    type: "result",
+    baaRequired: false,
+    title: "HIPAA's business associate rules may not reach your organization",
+    summary: "A Business Associate Agreement is only ever required from a covered entity or a business associate. If your organization is neither, HIPAA doesn't require you to get one from this outside party, but that classification is worth double-checking.",
+    explanation:
+      "HIPAA's business associate rules attach only to covered entities (health care providers who bill electronically, health plans, and health care clearinghouses) and their business associates. An organization that is neither doesn't have a HIPAA-driven duty to sign a BAA with its own vendors, even if those vendors happen to touch health-related data. That said, this classification is easy to get wrong: an app, platform, or service that handles health information on behalf of a covered entity or health plan, even informally, without a fee, or without realizing it, can become a business associate in its own right. Don't rely on this result alone if there's any real chance your organization is doing work for a covered entity or another business associate.",
+    citations: [
+      { cite: "45 CFR § 160.103", note: "definitions of \"covered entity\" and \"business associate\"" },
+      { cite: "45 CFR § 164.502(e)(1)(i)-(ii)", note: "the BAA requirement runs from a covered entity or a business associate to its own vendor" },
+    ],
+    nextSteps: [
+      "Double-check that your organization isn't unintentionally acting as a business associate, for example by receiving PHI to perform a function on behalf of a covered entity or health plan.",
+      "If you're not sure, treat this as a case for a quick check with privacy counsel rather than a final answer.",
     ],
   },
 
