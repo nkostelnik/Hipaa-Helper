@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronLeft, HelpCircle } from "lucide-react"
+import { ChevronLeft, HelpCircle, RotateCcw } from "lucide-react"
 import { motion } from "motion/react"
 import type { ChecklistNode } from "../data/types"
 import { GlossedText } from "./GlossedText"
@@ -9,11 +9,13 @@ export function ChecklistQuestion({
   canGoBack,
   onContinue,
   onBack,
+  onReset,
 }: {
   node: ChecklistNode
   canGoBack: boolean
   onContinue: (nextId: string, label: string) => void
   onBack: () => void
+  onReset: () => void
 }) {
   const [showHelp, setShowHelp] = useState(false)
   const [checked, setChecked] = useState<boolean[]>(() => node.items.map(() => false))
@@ -136,6 +138,14 @@ export function ChecklistQuestion({
             Back
           </button>
         )}
+        <button
+          type="button"
+          onClick={onReset}
+          className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+        >
+          <RotateCcw className="h-4 w-4" />
+          Start over
+        </button>
       </div>
     </motion.div>
   )
