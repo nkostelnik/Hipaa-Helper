@@ -5,14 +5,18 @@ import type { TreeNode } from "./types"
  *
  * This encodes the analysis HHS uses under the HIPAA Privacy and Security
  * Rules for deciding whether a Business Associate Agreement is required:
- *   0. Is the user's own organization a health care provider, health plan,
- *      or health care clearinghouse, i.e. a covered entity? This is asked
- *      as a plain factual question about the user's own business, not as
- *      a self-diagnosis of "are you a business associate", since deciding
- *      that is the point of the tool, not something to ask the user to
- *      already know. Answering "no" means the user may be a business
- *      associate to a covered entity instead, which the rest of the tree
- *      then works out.
+ *   0. Is the user's own organization a health care provider, a health
+ *      plan, or a health care clearinghouse, i.e. a covered entity? Asked
+ *      as three separate plain factual yes/no questions, one category at
+ *      a time, each with its definition built into the question itself,
+ *      rather than one combined question or a self-diagnosis of "are you
+ *      a business associate" (deciding that is the point of the tool, not
+ *      something to ask the user to already know). Saying no to all three
+ *      means the user may be a business associate to a covered entity
+ *      instead, which the rest of the tree then works out. Each answer is
+ *      followed by a one-line confirmation ("OK, sounds like you're a
+ *      health care provider") before moving on, so the user sees their
+ *      classification land before the substantive questions start.
  *   1. Is protected health information (PHI) involved at all?
  *   2. Is the recipient part of the covered entity's own workforce?
  *   3. Does the recipient perform a function or service on behalf of the
@@ -46,35 +50,77 @@ import type { TreeNode } from "./types"
  * edge cases so they can be reasoned through in plain language; anything
  * routed to "result_unclear" or flagged as close should go to counsel.
  */
-export const startNodeId = "entityType"
-export const totalStepsEstimate = 6
+export const startNodeId = "isProvider"
 
 export const decisionTree: Record<string, TreeNode> = {
-  entityType: {
-    id: "entityType",
+  isProvider: {
+    id: "isProvider",
     type: "question",
-    eyebrow: "Step 1 of 6",
-    intro: "Let's find out who you are in this picture.",
-    text: "Are you a health care provider, health plan, or health care clearinghouse?",
-    help: "These three categories, taken together, are what HIPAA calls a covered entity: a health care provider is a doctor's office, hospital, clinic, or pharmacy that bills electronically; a health plan is an insurer, HMO, Medicare, Medicaid, or similar program; a clearinghouse reformats health data for billing. If none of these describe you, you might still be a business associate, performing a service on behalf of one of these covered entities (or on behalf of another business associate) rather than being one yourself.",
+    eyebrow: "About your organization",
+    intro: "Let's find out who you are in this picture, one category at a time.",
+    text: "Are you a health care provider: someone who provides medical or health services and bills or is paid for them in the normal course of business, like a doctor's office, hospital, clinic, or pharmacy?",
     answers: [
-      {
-        label: "Yes, that's us: we're a health care provider, health plan, or clearinghouse",
-        next: "start",
-        flags: { isUserBA: false },
-      },
-      {
-        label: "No, we're not: we may be a business associate to one of those",
-        next: "start",
-        flags: { isUserBA: true },
-      },
+      { label: "Yes, that's us", next: "confirmProvider" },
+      { label: "No, that's not us", next: "isHealthPlan" },
     ],
+  },
+
+  isHealthPlan: {
+    id: "isHealthPlan",
+    type: "question",
+    eyebrow: "About your organization",
+    intro: "Not a health care provider. Let's check the next category.",
+    text: "Are you a health plan: an individual or group plan that provides or pays the cost of medical care, like a health insurer, an HMO, Medicare, Medicaid, or a similar program?",
+    answers: [
+      { label: "Yes, that's us", next: "confirmHealthPlan" },
+      { label: "No, that's not us", next: "isClearinghouse" },
+    ],
+  },
+
+  isClearinghouse: {
+    id: "isClearinghouse",
+    type: "question",
+    eyebrow: "About your organization",
+    intro: "Not a health plan either. One more category to check.",
+    text: "Are you a health care clearinghouse: an entity that processes health information it receives from another entity into a standard format, or the reverse, such as a billing or repricing service?",
+    answers: [
+      { label: "Yes, that's us", next: "confirmClearinghouse" },
+      { label: "No, none of those describe us", next: "confirmBA" },
+    ],
+  },
+
+  confirmProvider: {
+    id: "confirmProvider",
+    type: "question",
+    text: "OK, sounds like you're a health care provider.",
+    answers: [{ label: "Continue", next: "start", flags: { isUserBA: false } }],
+  },
+
+  confirmHealthPlan: {
+    id: "confirmHealthPlan",
+    type: "question",
+    text: "OK, sounds like you're a health plan.",
+    answers: [{ label: "Continue", next: "start", flags: { isUserBA: false } }],
+  },
+
+  confirmClearinghouse: {
+    id: "confirmClearinghouse",
+    type: "question",
+    text: "OK, sounds like you're a health care clearinghouse.",
+    answers: [{ label: "Continue", next: "start", flags: { isUserBA: false } }],
+  },
+
+  confirmBA: {
+    id: "confirmBA",
+    type: "question",
+    text: "OK, sounds like you may be a business associate to one of those, rather than a covered entity yourself.",
+    answers: [{ label: "Continue", next: "start", flags: { isUserBA: true } }],
   },
 
   start: {
     id: "start",
     type: "question",
-    eyebrow: "Step 2 of 6",
+    eyebrow: "Step 1 of 5",
     intro: "Let's find out whether patient health information is even part of what you're sharing with them.",
     text: "Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
@@ -87,7 +133,7 @@ export const decisionTree: Record<string, TreeNode> = {
   workforce: {
     id: "workforce",
     type: "question",
-    eyebrow: "Step 3 of 6",
+    eyebrow: "Step 2 of 5",
     intro: "Let's find out whether they're on your team or outside it.",
     text: "Is this person actually part of your own team, an employee, intern, or volunteer working under your direct supervision, rather than a separate outside company?",
     help: "Think of this broadly: it covers anyone who works under your organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
@@ -100,7 +146,7 @@ export const decisionTree: Record<string, TreeNode> = {
   whyTheyHaveIt: {
     id: "whyTheyHaveIt",
     type: "question",
-    eyebrow: "Step 4 of 6",
+    eyebrow: "Step 3 of 5",
     intro: "Let's find out why they have this information in the first place.",
     text: "Which of these best describes why this person or company has, or will have, this information?",
     help: "Pick the one that fits best. \"Paid work for us\" covers anything from billing and IT to consulting, transcription, or software that stores patient data. If none of these quite fit, choose the last option and this tool will flag it for a closer look.",
@@ -124,7 +170,7 @@ export const decisionTree: Record<string, TreeNode> = {
   exceptions: {
     id: "exceptions",
     type: "question",
-    eyebrow: "Step 5 of 6",
+    eyebrow: "Step 4 of 5",
     intro: "Let's rule out a few special situations before we go further.",
     text: "A few uncommon situations change the answer. Does any of these describe this specific relationship? If not, just choose the last option.",
     help: "These are all narrow, specific situations. If you're not sure any of them really fits, they probably don't, choose \"None of these.\"",
@@ -155,7 +201,7 @@ export const decisionTree: Record<string, TreeNode> = {
   planSponsorCert: {
     id: "planSponsorCert",
     type: "question",
-    eyebrow: "Step 6 of 6",
+    eyebrow: "Step 5 of 5",
     intro: "Let's check whether the paperwork is already in place.",
     text: "Have the health plan's plan documents been amended to include the required certifications, such as restricting the employer's use of this data to plan administration, prohibiting employment decisions based on it, and keeping it walled off from the employer's other functions?",
     help: "This amendment-and-certification process is what HIPAA requires here instead of a standard Business Associate Agreement.",
@@ -168,7 +214,7 @@ export const decisionTree: Record<string, TreeNode> = {
   deidentifiedChecklist: {
     id: "deidentifiedChecklist",
     type: "checklist",
-    eyebrow: "Step 6 of 6",
+    eyebrow: "Step 5 of 5",
     intro: "Let's confirm the data is genuinely de-identified.",
     text: "HIPAA has a specific test for this, called the Safe Harbor method. Data only counts as de-identified once every one of these has been removed for the individual and for their relatives, employers, and household members. Check off each one that has actually been removed:",
     help: "Removing just a name usually isn't enough. If even one of these categories remains and could point back to a specific person, the data is still PHI and this exception doesn't apply.",
