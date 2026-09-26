@@ -50,6 +50,12 @@ export function ChecklistQuestion({
         </p>
       )}
 
+      {node.intro && (
+        <p className="mb-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+          {node.intro}
+        </p>
+      )}
+
       <h2 className="text-lg font-semibold text-balance text-slate-900 sm:text-xl dark:text-slate-50">
         {node.text}
       </h2>

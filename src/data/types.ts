@@ -13,6 +13,7 @@ export type QuestionNode = {
   id: string
   type: "question"
   eyebrow?: string
+  intro?: string
   text: string
   help?: string
   answers: Answer[]
@@ -22,6 +23,7 @@ export type ChecklistNode = {
   id: string
   type: "checklist"
   eyebrow?: string
+  intro?: string
   text: string
   help?: string
   items: string[]
