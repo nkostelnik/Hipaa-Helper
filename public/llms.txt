@@ -1,0 +1,14 @@
+# HIPAA Helper
+
+> A plain-language decision tree that tells you whether a HIPAA Business Associate Agreement (BAA) is required for a given relationship. Answer a short series of questions, get a determination with citations and a printable reasoning trail.
+
+Not legal advice. Everything runs in the browser; no answers are transmitted or stored.
+
+## What it covers
+- Whether your own organization is a covered entity (health care provider, health plan, or health care clearinghouse) or a business associate.
+- Whether protected health information is involved at all.
+- Whether the other party is internal workforce, a treatment disclosure, a permitted public-interest/research disclosure, or a genuine business associate relationship.
+- Narrow exceptions: the conduit exception, the financial institution payment-processing exception, Safe Harbor de-identification, and group health plan / plan sponsor arrangements.
+
+## Primary page
+- [HIPAA Helper](https://nkostelnik.github.io/Hipaa-Helper/): the decision tree tool.
