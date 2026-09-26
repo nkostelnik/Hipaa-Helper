@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ChevronLeft, HelpCircle } from "lucide-react"
 import { motion } from "motion/react"
 import type { QuestionNode } from "../data/types"
+import { GlossedText } from "./GlossedText"
 
 export function QuestionCard({
   node,
@@ -45,7 +46,7 @@ export function QuestionCard({
       )}
 
       <h2 className="text-lg font-semibold text-balance text-slate-900 sm:text-xl dark:text-slate-50">
-        {node.text}
+        <GlossedText text={node.text} />
       </h2>
 
       {node.help && (
@@ -80,7 +81,7 @@ export function QuestionCard({
             onClick={() => handleAnswer(answer.next, answer.label)}
             className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-left text-sm font-medium text-slate-800 transition-colors hover:border-blue-400 hover:bg-blue-50 disabled:pointer-events-none disabled:opacity-60 sm:text-base dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-blue-500 dark:hover:bg-blue-950/40"
           >
-            {answer.label}
+            <GlossedText text={answer.label} />
           </button>
         ))}
       </div>
