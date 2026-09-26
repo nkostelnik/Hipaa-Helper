@@ -13,14 +13,15 @@ import type { TreeNode } from "./types"
  *      rather than one combined question or a self-diagnosis of "are you
  *      a business associate" (deciding that is the point of the tool, not
  *      something to ask the user to already know). Saying no to all three
- *      leads to two further factual questions, split apart because
- *      "on behalf of a covered entity or on behalf of another vendor that
- *      works for one" is really two separate things to check: first,
- *      whether the user does this work directly for a covered entity;
- *      if not, whether they do it for another vendor that does (making
- *      the user a subcontractor once removed). Either "yes" is what
- *      actually makes someone a business associate, rather than
- *      something to assume by elimination. Saying no to both routes to
+ *      leads to a chain of narrower factual questions rather than one
+ *      compound one: first, who the user works for (a covered entity or
+ *      not); only if that's a covered entity, what the work actually
+ *      involves (a "no" here, or to the first question, both fall
+ *      through to the same check for the subcontractor case: working
+ *      for another vendor that itself works for a covered entity).
+ *      Whichever "yes" is reached is what actually makes someone a
+ *      business associate, rather than something to assume by
+ *      elimination. Saying no all the way through routes to
  *      result_not_covered, since HIPAA's business associate rules don't
  *      reach an organization that is neither. Each "yes" answer is
  *      followed by a one-line confirmation
@@ -104,10 +105,22 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "About your organization",
     intro: "OK, not a covered entity, but you may be a business associate. Let's find out.",
-    text: "Do you perform a function, activity, or service involving health information for a doctor's office, hospital, health insurer, or similar organization, things like billing, IT, consulting, transcription, or software?",
+    text: "Do you perform work for a doctor's office, hospital, health insurer, or similar organization?",
     answers: [
-      { label: "Yes, that's us", next: "confirmBA" },
-      { label: "No, not directly", next: "isSubcontractorOfBA" },
+      { label: "Yes, we work for one of those", next: "isBAFunction" },
+      { label: "No, we don't", next: "isSubcontractorOfBA" },
+    ],
+  },
+
+  isBAFunction: {
+    id: "isBAFunction",
+    type: "question",
+    eyebrow: "About your organization",
+    intro: "OK, let's look at what that work actually involves.",
+    text: "Does that work involve health information, things like billing, IT, consulting, transcription, or software?",
+    answers: [
+      { label: "Yes, it involves that kind of work", next: "confirmBA" },
+      { label: "No, it doesn't", next: "isSubcontractorOfBA" },
     ],
   },
 
@@ -115,8 +128,8 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "isSubcontractorOfBA",
     type: "question",
     eyebrow: "About your organization",
-    intro: "Not directly, then. There's one more way this can happen.",
-    text: "Do you perform that kind of work for another vendor who already works for a doctor's office, hospital, health insurer, or similar organization, rather than for one of those directly?",
+    intro: "That doesn't establish it on its own. Let's check one more possibility.",
+    text: "Do you perform a function, activity, or service involving health information for another vendor who already works for a doctor's office, hospital, health insurer, or similar organization, rather than working for one of those directly?",
     answers: [
       { label: "Yes, that's us", next: "confirmBA" },
       { label: "No, that's not us either", next: "result_not_covered" },
