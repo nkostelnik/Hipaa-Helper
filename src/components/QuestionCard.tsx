@@ -30,7 +30,7 @@ export function QuestionCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 dark:border-slate-800 dark:bg-slate-900"
+      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-8 dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/60"
     >
       {node.eyebrow && (
         <p className="mb-3 text-xs font-medium tracking-wide text-blue-600 uppercase dark:text-blue-400">
