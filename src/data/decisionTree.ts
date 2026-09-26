@@ -63,7 +63,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "isProvider",
     type: "question",
     eyebrow: "About your organization",
-    intro: "Let's find out who you are in this picture, one category at a time.",
+    intro: "Let's find out who you are in this picture.",
     text: "Do you provide medical or health services, and bill or get paid for them in the normal course of business, like a doctor's office, hospital, clinic, or pharmacy?",
     answers: [
       { label: "Yes, that's us", next: "confirmProvider" },
