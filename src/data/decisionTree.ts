@@ -38,6 +38,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "start",
     type: "question",
     eyebrow: "Step 1 of 5",
+    intro: "Let's find out whether health information is even part of this.",
     text: "Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
@@ -50,6 +51,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "workforce",
     type: "question",
     eyebrow: "Step 2 of 5",
+    intro: "Let's find out whether they're on your team or outside it.",
     text: "Is this person actually part of your own team, an employee, intern, or volunteer working under your direct supervision, rather than a separate outside company?",
     help: "Think of this broadly: it covers anyone who works under your organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
     answers: [
@@ -62,6 +64,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "whyTheyHaveIt",
     type: "question",
     eyebrow: "Step 3 of 5",
+    intro: "Let's find out why they have this information in the first place.",
     text: "Which of these best describes why this person or company has, or will have, this information?",
     help: "Pick the one that fits best. \"Paid work for us\" covers anything from billing and IT to consulting, transcription, or software that stores patient data. If none of these quite fit, choose the last option and this tool will flag it for a closer look.",
     answers: [
@@ -85,6 +88,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "exceptions",
     type: "question",
     eyebrow: "Step 4 of 5",
+    intro: "Let's rule out a few special situations before we go further.",
     text: "A few uncommon situations change the answer. Does any of these describe this specific relationship? If not, just choose the last option.",
     help: "These are all narrow, specific situations. If you're not sure any of them really fits, they probably don't, choose \"None of these.\"",
     answers: [
@@ -115,6 +119,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "subcontractorCheck",
     type: "question",
     eyebrow: "Step 5 of 5",
+    intro: "Let's pin down exactly who you're dealing with.",
     text: "One last detail, just so the result names the right party: are you dealing directly with the hospital, doctor's office, or health plan, or with another vendor who was itself hired by one of those?",
     help: "If the company you're working with is really a vendor's vendor, brought in to help a vendor that already has its own agreement with the hospital or health plan, HIPAA still requires an agreement, it just runs between you and that vendor instead of the hospital or health plan directly.",
     answers: [
@@ -135,6 +140,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "planSponsorCert",
     type: "question",
     eyebrow: "Step 5 of 5",
+    intro: "Let's check whether the paperwork is already in place.",
     text: "Have the health plan's plan documents been amended to include the required certifications, such as restricting the employer's use of this data to plan administration, prohibiting employment decisions based on it, and keeping it walled off from the employer's other functions?",
     help: "This amendment-and-certification process is what HIPAA requires here instead of a standard Business Associate Agreement.",
     answers: [
@@ -147,6 +153,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "deidentifiedChecklist",
     type: "checklist",
     eyebrow: "Step 5 of 5",
+    intro: "Let's confirm the data is genuinely de-identified.",
     text: "HIPAA has a specific test for this, called the Safe Harbor method. Data only counts as de-identified once every one of these has been removed for the individual and for their relatives, employers, and household members. Check off each one that has actually been removed:",
     help: "Removing just a name usually isn't enough. If even one of these categories remains and could point back to a specific person, the data is still PHI and this exception doesn't apply.",
     items: [
