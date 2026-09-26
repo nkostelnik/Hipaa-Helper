@@ -29,25 +29,35 @@ import type { TreeNode } from "./types"
  *      first place the term itself appears, so the user sees their
  *      classification land before the substantive questions start.
  *
- *      From here the tree forks into two parallel paths based on the
- *      isUserBA flag set at step 0, "start"/"workforce"/"whyTheyHaveIt"/
- *      "exceptions" for a covered entity, "startBA"/"baWorkforce"/
- *      "baExceptions" for a business associate. They ask about the same
- *      four things below, but the business associate path is shorter and
- *      more targeted: it skips the treatment/public-interest branching
- *      (whyTheyHaveIt) and the plan sponsor option, since once someone is
- *      already confirmed as a business associate doing PHI-involving work
- *      for a covered entity, the treatment and public-interest exceptions
- *      and the plan-sponsor arrangement are specific to a covered entity's
- *      own disclosures and don't recur one level down at the subcontractor
- *      relationship. It goes straight from the PHI question to a workforce
- *      check to a trimmed exceptions question (just conduit, financial
- *      institution, and de-identification). The two paths share their
- *      result nodes (result_workforce, result_conduit, result_financial,
- *      result_deidentified, result_baa_required, deidentifiedChecklist),
- *      wherever the shared text is already branch-agnostic.
+ *      From here the tree forks based on the isUserBA flag set at step 0,
+ *      and the two paths are NOT symmetric, because "them" means something
+ *      different in each one. On the covered entity path, the classification
+ *      questions never mentioned any specific outside party, so "start"
+ *      properly introduces "them" as a new, not-yet-described relationship
+ *      and asks the full sequence below: is PHI involved, is the recipient
+ *      workforce, why do they have it (or is this treatment / public
+ *      interest), then the exceptions picker (including plan sponsor).
+ *
+ *      On the business associate path, by the time confirmBA is reached,
+ *      isBusinessAssociate/isBAFunction (or isSubcontractorOfBA) have
+ *      ALREADY named "them" (the covered entity or other vendor the user
+ *      does business with) and already established that the work involves
+ *      handling health information. Re-asking "is PHI involved" (a second
+ *      "start"-style question) would just repeat isBAFunction's question
+ *      in different words, and asking "is this person part of your own
+ *      team" makes no sense once "them" is a client organization rather
+ *      than someone who could plausibly be an employee. So confirmBA skips
+ *      straight to baExceptions, a trimmed exceptions picker (conduit,
+ *      financial institution, de-identification, no plan sponsor, since
+ *      that's specific to a covered entity's own disclosures to its plan
+ *      sponsor and doesn't recur one level down at a subcontractor
+ *      relationship), landing on the same shared result nodes as the
+ *      covered entity path wherever the result text is already
+ *      branch-agnostic (result_conduit, result_financial,
+ *      result_deidentified, result_baa_required, deidentifiedChecklist).
  *   1. Is protected health information (PHI) involved at all?
- *   2. Is the recipient part of the organization's own workforce?
+ *   2. (Covered entity path only.) Is the recipient part of the
+ *      organization's own workforce?
  *   3. (Covered entity path only.) Does the recipient perform a function
  *      or service on behalf of the covered entity that involves PHI, or
  *      is this actually a treatment disclosure or a permitted
@@ -197,7 +207,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "confirmBA",
     type: "question",
     text: "OK, sounds like you're a business associate rather than a covered entity yourself.",
-    answers: [{ label: "Continue", next: "startBA", flags: { isUserBA: true, classified: true } }],
+    answers: [{ label: "Continue", next: "baExceptions", flags: { isUserBA: true, classified: true } }],
   },
 
   start: {
@@ -209,19 +219,6 @@ export const decisionTree: Record<string, TreeNode> = {
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
       { label: "Yes, it involves that kind of health information", next: "workforce" },
-      { label: "No, or I'm not sure it counts as health information", next: "result_no_phi" },
-    ],
-  },
-
-  startBA: {
-    id: "startBA",
-    type: "question",
-    eyebrow: "Step 1 of 4",
-    intro: "Now, about the other person or company you're considering this agreement with: let's find out whether patient health information is even part of what you'd share with them.",
-    text: "Will they see, use, or store any of the patient health information you handle on behalf of your clients, things like medical records, diagnoses, treatment notes, or insurance claims?",
-    help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
-    answers: [
-      { label: "Yes, it involves that kind of health information", next: "baWorkforce" },
       { label: "No, or I'm not sure it counts as health information", next: "result_no_phi" },
     ],
   },
@@ -239,24 +236,11 @@ export const decisionTree: Record<string, TreeNode> = {
     ],
   },
 
-  baWorkforce: {
-    id: "baWorkforce",
-    type: "question",
-    eyebrow: "Step 2 of 4",
-    intro: "Let's find out whether they're on your team or outside it.",
-    text: "Is this person actually part of your own team, an employee, intern, or volunteer working under your direct supervision, rather than a separate outside company?",
-    help: "Think of this broadly: it covers anyone who works under your organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
-    answers: [
-      { label: "Yes, they're part of our own team", next: "result_workforce" },
-      { label: "No, they're a separate outside party", next: "baExceptions" },
-    ],
-  },
-
   baExceptions: {
     id: "baExceptions",
     type: "question",
-    eyebrow: "Step 3 of 4",
-    intro: "Let's rule out a couple of special situations before we go further.",
+    eyebrow: "One last check",
+    intro: "You've already told us this work involves handling health information for them. Before landing on an answer, let's just rule out a couple of narrow exceptions.",
     text: "A couple of uncommon situations change the answer. Does either of these describe this specific relationship? If not, just choose the last option.",
     help: "These are both narrow, specific situations. If you're not sure either one really fits, it probably doesn't, choose \"None of these.\"",
     answers: [
