@@ -2,6 +2,7 @@ import { useState } from "react"
 import { ChevronLeft, HelpCircle } from "lucide-react"
 import { motion } from "motion/react"
 import type { ChecklistNode } from "../data/types"
+import { GlossedText } from "./GlossedText"
 
 export function ChecklistQuestion({
   node,
@@ -57,7 +58,7 @@ export function ChecklistQuestion({
       )}
 
       <h2 className="text-lg font-semibold text-balance text-slate-900 sm:text-xl dark:text-slate-50">
-        {node.text}
+        <GlossedText text={node.text} />
       </h2>
 
       {node.help && (
@@ -94,7 +95,7 @@ export function ChecklistQuestion({
                 disabled={locked}
                 className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
               />
-              <span>{item}</span>
+              <span><GlossedText text={item} /></span>
             </label>
           </li>
         ))}
@@ -108,7 +109,7 @@ export function ChecklistQuestion({
           disabled={locked}
           className="mt-0.5 h-4 w-4 shrink-0 accent-blue-600"
         />
-        <span>{node.confirmText}</span>
+        <span><GlossedText text={node.confirmText} /></span>
       </label>
 
       <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
