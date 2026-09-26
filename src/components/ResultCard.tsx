@@ -91,11 +91,11 @@ export function ResultCard({
         </ul>
       </div>
 
-      {flags.isSubcontractor && node.baaRequired && (
+      {flags.isUserBA && node.id === "result_baa_required" && (
         <div className="mt-5 rounded-lg border border-blue-200 bg-blue-50 p-3 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
-          <strong>Subcontractor note:</strong> Because the other organization is
-          itself a business associate rather than the covered entity, any BAA
-          here would be between your organization and that business associate,
+          <strong>Subcontractor note:</strong> Since your own organization is a
+          business associate rather than the covered entity itself, this
+          agreement would be a subcontractor BAA between you and this vendor,
           not directly with the covered entity. Subcontractors of a business
           associate are themselves treated as business associates under 45 CFR
           § 160.103, so the same requirement carries down the chain.
