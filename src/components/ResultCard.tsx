@@ -40,8 +40,8 @@ export function ResultCard({
         <span
           className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
             node.baaRequired
-              ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400"
-              : "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
+              ? "bg-gradient-to-br from-amber-100 to-amber-200 text-amber-700 dark:from-amber-900/40 dark:to-amber-800/40 dark:text-amber-400"
+              : "bg-gradient-to-br from-emerald-100 to-emerald-200 text-emerald-700 dark:from-emerald-900/40 dark:to-emerald-800/40 dark:text-emerald-400"
           }`}
         >
           {node.baaRequired ? (
@@ -116,7 +116,7 @@ export function ResultCard({
         <button
           type="button"
           onClick={() => window.print()}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-4 py-2 text-sm font-medium text-white transition-colors hover:from-blue-700 hover:to-blue-800"
         >
           <Printer className="h-4 w-4" />
           Print / save summary

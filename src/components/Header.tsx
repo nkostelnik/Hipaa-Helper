@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react"
 export function Header() {
   return (
     <header className="mx-auto w-full max-w-2xl px-4 pt-10 pb-4 text-center sm:pt-16">
-      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-sm shadow-blue-600/30">
+      <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-sm shadow-blue-600/30">
         <ShieldCheck className="h-6 w-6" strokeWidth={2.25} />
       </div>
       <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-50">
