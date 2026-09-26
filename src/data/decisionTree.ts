@@ -117,7 +117,7 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "About your organization",
     intro: "OK, let's look at what that work actually involves.",
-    text: "Does that work involve health information, things like billing, IT, consulting, transcription, or software?",
+    text: "Is that work something like billing, IT, consulting, transcription, or software, the kind of work that involves handling health information?",
     answers: [
       { label: "Yes, it involves that kind of work", next: "confirmBA" },
       { label: "No, it doesn't", next: "isSubcontractorOfBA" },
