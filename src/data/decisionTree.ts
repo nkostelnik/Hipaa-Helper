@@ -29,37 +29,47 @@ import type { TreeNode } from "./types"
  *      first place the term itself appears, so the user sees their
  *      classification land before the substantive questions start.
  *
- *      Step 1 (below) has two variants, "start" and "startBA", that
- *      differ only in whether they say "your patients'" or "the patient
- *      health information you handle on behalf of your clients." A
- *      business associate doesn't have its own patients, so the default
- *      covered-entity phrasing doesn't hold up once someone has been
- *      classified that way; confirmBA routes to startBA instead of
- *      start for exactly that reason.
+ *      From here the tree forks into two parallel paths based on the
+ *      isUserBA flag set at step 0, "start"/"workforce"/"whyTheyHaveIt"/
+ *      "exceptions" for a covered entity, "startBA"/"baWorkforce"/
+ *      "baExceptions" for a business associate. They ask about the same
+ *      four things below, but the business associate path is shorter and
+ *      more targeted: it skips the treatment/public-interest branching
+ *      (whyTheyHaveIt) and the plan sponsor option, since once someone is
+ *      already confirmed as a business associate doing PHI-involving work
+ *      for a covered entity, the treatment and public-interest exceptions
+ *      and the plan-sponsor arrangement are specific to a covered entity's
+ *      own disclosures and don't recur one level down at the subcontractor
+ *      relationship. It goes straight from the PHI question to a workforce
+ *      check to a trimmed exceptions question (just conduit, financial
+ *      institution, and de-identification). The two paths share their
+ *      result nodes (result_workforce, result_conduit, result_financial,
+ *      result_deidentified, result_baa_required, deidentifiedChecklist),
+ *      wherever the shared text is already branch-agnostic.
  *   1. Is protected health information (PHI) involved at all?
- *   2. Is the recipient part of the covered entity's own workforce?
- *   3. Does the recipient perform a function or service on behalf of the
- *      covered entity (or a business associate) that involves PHI, or is
- *      this actually a treatment disclosure or a permitted public-interest
- *      disclosure?
+ *   2. Is the recipient part of the organization's own workforce?
+ *   3. (Covered entity path only.) Does the recipient perform a function
+ *      or service on behalf of the covered entity that involves PHI, or
+ *      is this actually a treatment disclosure or a permitted
+ *      public-interest disclosure?
  *   4. If it's a service, does a narrow exception apply: the conduit
  *      exception, the financial institution payment-processing exception,
- *      de-identified data (Safe Harbor's 18 identifiers), or is this
- *      actually a group health plan / plan sponsor arrangement, governed
- *      by its own certification process instead of a BAA?
+ *      de-identified data (Safe Harbor's 18 identifiers), or (covered
+ *      entity path only) a group health plan / plan sponsor arrangement,
+ *      governed by its own certification process instead of a BAA?
  *
  * The uncommon exceptions (conduit, payment processing, de-identification,
- * plan sponsor) are offered together as a single plain-language multiple
- * choice question rather than four separate yes/no questions, so a normal
- * vendor relationship reaches its answer in about four short questions
- * instead of walking through every edge case first. Legal terms of art
- * (business associate, workforce, conduit, Safe Harbor, plan sponsor) are
- * kept out of the question text itself and explained in help text or
- * citations instead.
+ * plan sponsor where applicable) are offered together as a single
+ * plain-language multiple choice question rather than several separate
+ * yes/no questions, so a normal vendor relationship reaches its answer in
+ * a handful of short questions instead of walking through every edge case
+ * first. Legal terms of art (business associate, workforce, conduit, Safe
+ * Harbor, plan sponsor) are kept out of the question text itself and
+ * explained in help text or citations instead.
  *
  * Whether the user's own organization is a covered entity or a business
- * associate (set as the isUserBA flag on step 0) doesn't change which
- * result node the rest of the tree lands on, it only changes how
+ * associate (set as the isUserBA flag on step 0) changes which path
+ * through the tree is taken (see above), and also changes how
  * result_baa_required is explained: a covered entity's BAA runs straight
  * to its vendor, a business associate's runs to its subcontractor, but
  * the requirement itself is the same either way. See the isUserBA check
@@ -206,12 +216,12 @@ export const decisionTree: Record<string, TreeNode> = {
   startBA: {
     id: "startBA",
     type: "question",
-    eyebrow: "Step 1 of 5",
+    eyebrow: "Step 1 of 4",
     intro: "Now, about the other person or company you're considering this agreement with: let's find out whether patient health information is even part of what you'd share with them.",
     text: "Will they see, use, or store any of the patient health information you handle on behalf of your clients, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
-      { label: "Yes, it involves that kind of health information", next: "workforce" },
+      { label: "Yes, it involves that kind of health information", next: "baWorkforce" },
       { label: "No, or I'm not sure it counts as health information", next: "result_no_phi" },
     ],
   },
@@ -226,6 +236,46 @@ export const decisionTree: Record<string, TreeNode> = {
     answers: [
       { label: "Yes, they're part of our own team", next: "result_workforce" },
       { label: "No, they're a separate outside party", next: "whyTheyHaveIt" },
+    ],
+  },
+
+  baWorkforce: {
+    id: "baWorkforce",
+    type: "question",
+    eyebrow: "Step 2 of 4",
+    intro: "Let's find out whether they're on your team or outside it.",
+    text: "Is this person actually part of your own team, an employee, intern, or volunteer working under your direct supervision, rather than a separate outside company?",
+    help: "Think of this broadly: it covers anyone who works under your organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
+    answers: [
+      { label: "Yes, they're part of our own team", next: "result_workforce" },
+      { label: "No, they're a separate outside party", next: "baExceptions" },
+    ],
+  },
+
+  baExceptions: {
+    id: "baExceptions",
+    type: "question",
+    eyebrow: "Step 3 of 4",
+    intro: "Let's rule out a couple of special situations before we go further.",
+    text: "A couple of uncommon situations change the answer. Does either of these describe this specific relationship? If not, just choose the last option.",
+    help: "These are both narrow, specific situations. If you're not sure either one really fits, it probably doesn't, choose \"None of these.\"",
+    answers: [
+      {
+        label: "They only transport or briefly pass the data through, without any real ability to look at it, like a mail courier, delivery service, or an internet provider just carrying the traffic",
+        next: "result_conduit",
+      },
+      {
+        label: "They're a bank or payment processor whose only role is handling a payment the patient or member directly initiated, like a credit card charge",
+        next: "result_financial",
+      },
+      {
+        label: "All identifying details (name, address, birth date, ID numbers, and so on) have already been stripped out, so it can't be traced back to a specific person",
+        next: "deidentifiedChecklist",
+      },
+      {
+        label: "None of these, it's a normal vendor or service relationship",
+        next: "result_baa_required",
+      },
     ],
   },
 
@@ -300,7 +350,7 @@ export const decisionTree: Record<string, TreeNode> = {
   deidentifiedChecklist: {
     id: "deidentifiedChecklist",
     type: "checklist",
-    eyebrow: "Step 5 of 5",
+    eyebrow: "Confirming de-identification",
     intro: "Let's confirm the data is genuinely de-identified.",
     text: "HIPAA has a specific test for this, called the Safe Harbor method. Data only counts as de-identified once every one of these has been removed for the individual and for their relatives, employers, and household members. Check off each one that has actually been removed:",
     help: "Removing just a name usually isn't enough. If even one of these categories remains and could point back to a specific person, the data is still PHI and this exception doesn't apply.",
@@ -407,7 +457,7 @@ export const decisionTree: Record<string, TreeNode> = {
     title: "No, a BAA is not required: this is an internal workforce member",
     summary: "Employees, volunteers, and trainees under an organization's direct control are part of its own workforce, not a separate business associate.",
     explanation:
-      "A Business Associate Agreement documents a relationship between two separate legal entities. Members of a covered entity's own workforce are already bound by that organization's HIPAA policies, training, and sanctions, so no separate contract is required. This holds even if the workforce member routinely handles PHI as part of their job.",
+      "A Business Associate Agreement documents a relationship between two separate legal entities. Members of an organization's own workforce, whether that organization is a covered entity or a business associate, are already bound by that organization's HIPAA policies, training, and sanctions, so no separate contract is required. This holds even if the workforce member routinely handles PHI as part of their job.",
     citations: [
       { cite: "45 CFR § 160.103", note: "definition of \"workforce\"" },
       { cite: "45 CFR § 164.530(b), (c)", note: "training and safeguard duties an organization owes its own workforce" },
