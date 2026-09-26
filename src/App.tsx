@@ -20,7 +20,7 @@ function App() {
   } = useDecisionTree()
 
   return (
-    <div className="min-h-svh bg-slate-50 dark:bg-slate-950">
+    <div className="min-h-svh bg-gradient-to-b from-slate-50 via-slate-50 to-blue-50 dark:from-slate-950 dark:via-slate-950 dark:to-slate-900">
       <Header />
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-16">
