@@ -28,6 +28,14 @@ import type { TreeNode } from "./types"
  *      ("OK, sounds like you're a health care provider") that is the
  *      first place the term itself appears, so the user sees their
  *      classification land before the substantive questions start.
+ *
+ *      Step 1 (below) has two variants, "start" and "startBA", that
+ *      differ only in whether they say "your patients'" or "the patient
+ *      health information you handle on behalf of your clients." A
+ *      business associate doesn't have its own patients, so the default
+ *      covered-entity phrasing doesn't hold up once someone has been
+ *      classified that way; confirmBA routes to startBA instead of
+ *      start for exactly that reason.
  *   1. Is protected health information (PHI) involved at all?
  *   2. Is the recipient part of the covered entity's own workforce?
  *   3. Does the recipient perform a function or service on behalf of the
@@ -179,7 +187,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "confirmBA",
     type: "question",
     text: "OK, sounds like you're a business associate rather than a covered entity yourself.",
-    answers: [{ label: "Continue", next: "start", flags: { isUserBA: true, classified: true } }],
+    answers: [{ label: "Continue", next: "startBA", flags: { isUserBA: true, classified: true } }],
   },
 
   start: {
@@ -188,6 +196,19 @@ export const decisionTree: Record<string, TreeNode> = {
     eyebrow: "Step 1 of 5",
     intro: "Now, about the other person or company you're considering this agreement with: let's find out whether patient health information is even part of what you'd share with them.",
     text: "Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
+    help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
+    answers: [
+      { label: "Yes, it involves that kind of health information", next: "workforce" },
+      { label: "No, or I'm not sure it counts as health information", next: "result_no_phi" },
+    ],
+  },
+
+  startBA: {
+    id: "startBA",
+    type: "question",
+    eyebrow: "Step 1 of 5",
+    intro: "Now, about the other person or company you're considering this agreement with: let's find out whether patient health information is even part of what you'd share with them.",
+    text: "Will they see, use, or store any of the patient health information you handle on behalf of your clients, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
       { label: "Yes, it involves that kind of health information", next: "workforce" },
