@@ -10,8 +10,8 @@ export function Header() {
         HIPAA Helper
       </h1>
       <p className="mx-auto mt-2 max-w-md text-sm text-slate-600 sm:text-base dark:text-slate-400">
-        Answer a few plain-language questions to find out whether a Business
-        Associate Agreement is required.
+        You're entering into a relationship with another person or company.
+        Do you need a Business Associate Agreement with them? Let's find out.
       </p>
     </header>
   )

@@ -38,7 +38,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "start",
     type: "question",
     eyebrow: "Step 1 of 5",
-    text: "Think of the outside person or company you're deciding whether to share patient information with, a vendor, contractor, referral partner, or anyone else outside your organization. Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
+    text: "Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
       { label: "Yes, it involves that kind of health information", next: "workforce" },
