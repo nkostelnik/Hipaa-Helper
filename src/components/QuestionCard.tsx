@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { ChevronLeft, HelpCircle } from "lucide-react"
+import { ChevronLeft, HelpCircle, RotateCcw } from "lucide-react"
 import { motion } from "motion/react"
 import type { QuestionNode } from "../data/types"
 import { GlossedText } from "./GlossedText"
@@ -9,11 +9,13 @@ export function QuestionCard({
   canGoBack,
   onAnswer,
   onBack,
+  onReset,
 }: {
   node: QuestionNode
   canGoBack: boolean
   onAnswer: (nextId: string, label: string) => void
   onBack: () => void
+  onReset: () => void
 }) {
   const [showHelp, setShowHelp] = useState(false)
   const [locked, setLocked] = useState(false)
@@ -86,16 +88,26 @@ export function QuestionCard({
         ))}
       </div>
 
-      {canGoBack && (
+      <div className="mt-6 flex items-center gap-4">
+        {canGoBack && (
+          <button
+            type="button"
+            onClick={onBack}
+            className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </button>
+        )}
         <button
           type="button"
-          onClick={onBack}
-          className="mt-6 inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          onClick={onReset}
+          className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 transition-colors hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
         >
-          <ChevronLeft className="h-4 w-4" />
-          Back
+          <RotateCcw className="h-4 w-4" />
+          Start over
         </button>
-      )}
+      </div>
     </motion.div>
   )
 }

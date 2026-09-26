@@ -8,7 +8,8 @@ import type { TreeNode } from "./types"
  *   0. Is the user's own organization a health care provider, a health
  *      plan, or a health care clearinghouse, i.e. a covered entity? Asked
  *      as three separate plain factual yes/no questions, one category at
- *      a time, each with its definition built into the question itself,
+ *      a time, describing each category's criteria without naming the
+ *      legal term itself (no "health care provider" in the question text),
  *      rather than one combined question or a self-diagnosis of "are you
  *      a business associate" (deciding that is the point of the tool, not
  *      something to ask the user to already know). Saying no to all three
@@ -19,8 +20,8 @@ import type { TreeNode } from "./types"
  *      Saying no to that too routes to result_not_covered, since HIPAA's
  *      business associate rules don't reach an organization that is
  *      neither. Each "yes" answer is followed by a one-line confirmation
- *      ("OK, sounds like you're a health care provider") before moving
- *      on, so the user sees their
+ *      ("OK, sounds like you're a health care provider") that is the
+ *      first place the term itself appears, so the user sees their
  *      classification land before the substantive questions start.
  *   1. Is protected health information (PHI) involved at all?
  *   2. Is the recipient part of the covered entity's own workforce?
@@ -63,7 +64,7 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "About your organization",
     intro: "Let's find out who you are in this picture, one category at a time.",
-    text: "Are you a health care provider: someone who provides medical or health services and bills or is paid for them in the normal course of business, like a doctor's office, hospital, clinic, or pharmacy?",
+    text: "Do you provide medical or health services, and bill or get paid for them in the normal course of business, like a doctor's office, hospital, clinic, or pharmacy?",
     answers: [
       { label: "Yes, that's us", next: "confirmProvider" },
       { label: "No, that's not us", next: "isHealthPlan" },
@@ -74,8 +75,8 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "isHealthPlan",
     type: "question",
     eyebrow: "About your organization",
-    intro: "Not a health care provider. Let's check the next category.",
-    text: "Are you a health plan: an individual or group plan that provides or pays the cost of medical care, like a health insurer, an HMO, Medicare, Medicaid, or a similar program?",
+    intro: "Not that one. Let's check the next category.",
+    text: "Do you provide or pay the cost of medical care for a group of people, like a health insurer, an HMO, Medicare, Medicaid, or a similar program?",
     answers: [
       { label: "Yes, that's us", next: "confirmHealthPlan" },
       { label: "No, that's not us", next: "isClearinghouse" },
@@ -86,8 +87,8 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "isClearinghouse",
     type: "question",
     eyebrow: "About your organization",
-    intro: "Not a health plan either. One more category to check.",
-    text: "Are you a health care clearinghouse: an entity that processes health information it receives from another entity into a standard format, or the reverse, such as a billing or repricing service?",
+    intro: "Not that one either. One more category to check.",
+    text: "Do you process health information you receive from another organization into a standard format, or the reverse, such as a billing or repricing service?",
     answers: [
       { label: "Yes, that's us", next: "confirmClearinghouse" },
       { label: "No, none of those describe us", next: "isBusinessAssociate" },
@@ -98,9 +99,8 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "isBusinessAssociate",
     type: "question",
     eyebrow: "About your organization",
-    intro: "Not a covered entity, then. Let's check one more thing before moving on.",
-    text: "Do you perform a function, activity, or service involving health information on behalf of a health care provider, health plan, or clearinghouse, or on behalf of another business associate that already works for one of those, things like billing, IT, consulting, transcription, or software?",
-    help: "This is what actually makes an organization a business associate: not being a covered entity yourself, but doing work that involves health information on behalf of one, whether directly or one step removed through another vendor.",
+    intro: "Not a match there either. Let's check one more thing before moving on.",
+    text: "Do you perform a function, activity, or service involving health information on behalf of a doctor's office, hospital, health insurer, or similar organization, or on behalf of another vendor that already works for one of those, things like billing, IT, consulting, transcription, or software?",
     answers: [
       { label: "Yes, that's us", next: "confirmBA" },
       { label: "No, that's not us either", next: "result_not_covered" },

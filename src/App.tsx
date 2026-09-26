@@ -36,6 +36,7 @@ function App() {
               canGoBack={canGoBack}
               onAnswer={answer}
               onBack={goBack}
+              onReset={reset}
             />
           )}
           {currentNode.type === "checklist" && (
@@ -45,6 +46,7 @@ function App() {
               canGoBack={canGoBack}
               onContinue={answerChecklist}
               onBack={goBack}
+              onReset={reset}
             />
           )}
           {currentNode.type === "result" && (
