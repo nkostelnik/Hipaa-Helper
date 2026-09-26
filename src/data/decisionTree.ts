@@ -13,13 +13,17 @@ import type { TreeNode } from "./types"
  *      rather than one combined question or a self-diagnosis of "are you
  *      a business associate" (deciding that is the point of the tool, not
  *      something to ask the user to already know). Saying no to all three
- *      leads to a fourth, equally factual question, whether the user does
- *      work involving health information on behalf of a covered entity or
- *      another business associate, which is what actually makes someone a
- *      business associate rather than something to assume by elimination.
- *      Saying no to that too routes to result_not_covered, since HIPAA's
- *      business associate rules don't reach an organization that is
- *      neither. Each "yes" answer is followed by a one-line confirmation
+ *      leads to two further factual questions, split apart because
+ *      "on behalf of a covered entity or on behalf of another vendor that
+ *      works for one" is really two separate things to check: first,
+ *      whether the user does this work directly for a covered entity;
+ *      if not, whether they do it for another vendor that does (making
+ *      the user a subcontractor once removed). Either "yes" is what
+ *      actually makes someone a business associate, rather than
+ *      something to assume by elimination. Saying no to both routes to
+ *      result_not_covered, since HIPAA's business associate rules don't
+ *      reach an organization that is neither. Each "yes" answer is
+ *      followed by a one-line confirmation
  *      ("OK, sounds like you're a health care provider") that is the
  *      first place the term itself appears, so the user sees their
  *      classification land before the substantive questions start.
@@ -99,8 +103,20 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "isBusinessAssociate",
     type: "question",
     eyebrow: "About your organization",
-    intro: "Not a match there either. Let's check one more thing before moving on.",
-    text: "Do you perform a function, activity, or service involving health information on behalf of a doctor's office, hospital, health insurer, or similar organization, or on behalf of another vendor that already works for one of those, things like billing, IT, consulting, transcription, or software?",
+    intro: "OK, not a covered entity, but you may be a business associate. Let's find out.",
+    text: "Do you perform a function, activity, or service involving health information for a doctor's office, hospital, health insurer, or similar organization, things like billing, IT, consulting, transcription, or software?",
+    answers: [
+      { label: "Yes, that's us", next: "confirmBA" },
+      { label: "No, not directly", next: "isSubcontractorOfBA" },
+    ],
+  },
+
+  isSubcontractorOfBA: {
+    id: "isSubcontractorOfBA",
+    type: "question",
+    eyebrow: "About your organization",
+    intro: "Not directly, then. There's one more way this can happen.",
+    text: "Do you perform that kind of work for another vendor who already works for a doctor's office, hospital, health insurer, or similar organization, rather than for one of those directly?",
     answers: [
       { label: "Yes, that's us", next: "confirmBA" },
       { label: "No, that's not us either", next: "result_not_covered" },
