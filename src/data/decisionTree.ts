@@ -73,7 +73,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "start",
     type: "question",
     eyebrow: "Step 2 of 6",
-    intro: "Let's find out whether health information is even part of this.",
+    intro: "Now let's find out about the other party, the person or company you're sharing information with.",
     text: "Will they see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
