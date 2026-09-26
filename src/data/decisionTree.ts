@@ -5,11 +5,14 @@ import type { TreeNode } from "./types"
  *
  * This encodes the analysis HHS uses under the HIPAA Privacy and Security
  * Rules for deciding whether a Business Associate Agreement is required:
- *   0. Is the user's own organization even a covered entity or a business
- *      associate? The BAA requirement only ever runs from one of those two
- *      to their own vendor (45 CFR 164.502(e)(1)(i)-(ii)), so an
- *      organization that is neither doesn't have a HIPAA-driven duty to
- *      get one, no matter what the rest of the analysis would say.
+ *   0. Is the user's own organization a health care provider, health plan,
+ *      or health care clearinghouse, i.e. a covered entity? This is asked
+ *      as a plain factual question about the user's own business, not as
+ *      a self-diagnosis of "are you a business associate", since deciding
+ *      that is the point of the tool, not something to ask the user to
+ *      already know. Answering "no" means the user may be a business
+ *      associate to a covered entity instead, which the rest of the tree
+ *      then works out.
  *   1. Is protected health information (PHI) involved at all?
  *   2. Is the recipient part of the covered entity's own workforce?
  *   3. Does the recipient perform a function or service on behalf of the
@@ -52,20 +55,19 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "Step 1 of 6",
     intro: "Let's find out who you are in this picture.",
-    text: "Which of these best describes your own organization?",
-    help: "A covered entity is a health care provider that bills electronically (a doctor's office, hospital, clinic, or pharmacy), a health plan, or a health care clearinghouse. A business associate is a vendor that already performs services involving PHI on behalf of a covered entity, under its own BAA. If neither describes you, it's worth double-checking your own status carefully before relying on that, since the line can be less obvious than it looks.",
+    text: "Are you a health care provider, health plan, or health care clearinghouse?",
+    help: "These three categories, taken together, are what HIPAA calls a covered entity: a health care provider is a doctor's office, hospital, clinic, or pharmacy that bills electronically; a health plan is an insurer, HMO, Medicare, Medicaid, or similar program; a clearinghouse reformats health data for billing. If none of these describe you, you might still be a business associate, performing a service on behalf of one of these covered entities (or on behalf of another business associate) rather than being one yourself.",
     answers: [
       {
-        label: "We're a covered entity: a health care provider, health plan, or clearinghouse",
+        label: "Yes, that's us: we're a health care provider, health plan, or clearinghouse",
         next: "start",
         flags: { isUserBA: false },
       },
       {
-        label: "We're a business associate, already working under our own BAA with a covered entity",
+        label: "No, we're not: we may be a business associate to one of those",
         next: "start",
         flags: { isUserBA: true },
       },
-      { label: "Neither of these, or we're not sure", next: "result_not_covered" },
     ],
   },
 
@@ -211,24 +213,6 @@ export const decisionTree: Record<string, TreeNode> = {
     nextSteps: [
       "Double-check that no identifiable health data (even indirectly, like a name plus an appointment time) is actually changing hands.",
       "If the answer is close, treat the data as PHI and re-run this tool, or ask counsel to confirm.",
-    ],
-  },
-
-  result_not_covered: {
-    id: "result_not_covered",
-    type: "result",
-    baaRequired: false,
-    title: "HIPAA's business associate rules may not reach your organization",
-    summary: "A Business Associate Agreement is only ever required from a covered entity or a business associate. If your organization is neither, HIPAA doesn't require you to get one from this outside party, but that classification is worth double-checking.",
-    explanation:
-      "HIPAA's business associate rules attach only to covered entities (health care providers who bill electronically, health plans, and health care clearinghouses) and their business associates. An organization that is neither doesn't have a HIPAA-driven duty to sign a BAA with its own vendors, even if those vendors happen to touch health-related data. That said, this classification is easy to get wrong: an app, platform, or service that handles health information on behalf of a covered entity or health plan, even informally, without a fee, or without realizing it, can become a business associate in its own right. Don't rely on this result alone if there's any real chance your organization is doing work for a covered entity or another business associate.",
-    citations: [
-      { cite: "45 CFR § 160.103", note: "definitions of \"covered entity\" and \"business associate\"" },
-      { cite: "45 CFR § 164.502(e)(1)(i)-(ii)", note: "the BAA requirement runs from a covered entity or a business associate to its own vendor" },
-    ],
-    nextSteps: [
-      "Double-check that your organization isn't unintentionally acting as a business associate, for example by receiving PHI to perform a function on behalf of a covered entity or health plan.",
-      "If you're not sure, treat this as a case for a quick check with privacy counsel rather than a final answer.",
     ],
   },
 
