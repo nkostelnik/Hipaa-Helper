@@ -6,56 +6,136 @@ import type { TreeNode } from "./types"
  * This encodes the analysis HHS uses under the HIPAA Privacy and Security
  * Rules for deciding whether a Business Associate Agreement is required:
  *   1. Is protected health information (PHI) involved at all?
- *   2. Is this actually a group health plan / plan sponsor arrangement,
- *      governed by its own certification process instead of a BAA?
- *   3. Is the recipient a subcontractor of a business associate, rather
- *      than dealing with the covered entity directly? (Same rules apply,
- *      but it changes who signs the agreement with whom.)
- *   4. Is the recipient part of the covered entity's own workforce?
- *   5. Does the recipient perform a function or service on behalf of the
- *      covered entity (or a business associate) that involves PHI?
- *   6. If so, does a specific exception apply: treatment disclosure,
- *      permitted public-interest/research disclosure, de-identified data
- *      (Safe Harbor's 18 identifiers), the conduit exception, or the
- *      financial institution payment-processing exception?
+ *   2. Is the recipient part of the covered entity's own workforce?
+ *   3. Does the recipient perform a function or service on behalf of the
+ *      covered entity (or a business associate) that involves PHI, or is
+ *      this actually a treatment disclosure or a permitted public-interest
+ *      disclosure?
+ *   4. If it's a service, does a narrow exception apply: the conduit
+ *      exception, the financial institution payment-processing exception,
+ *      de-identified data (Safe Harbor's 18 identifiers), or is this
+ *      actually a group health plan / plan sponsor arrangement, governed
+ *      by its own certification process instead of a BAA?
+ *
+ * The uncommon exceptions (conduit, payment processing, de-identification,
+ * plan sponsor) are offered together as a single plain-language multiple
+ * choice question rather than four separate yes/no questions, so a normal
+ * vendor relationship reaches its answer in about four short questions
+ * instead of walking through every edge case first. Legal terms of art
+ * (business associate, workforce, conduit, Safe Harbor, plan sponsor) are
+ * kept out of the question text itself and explained in help text or
+ * citations instead.
  *
  * This is educational guidance, not legal advice. It simplifies real
  * edge cases so they can be reasoned through in plain language; anything
  * routed to "result_unclear" or flagged as close should go to counsel.
  */
 export const startNodeId = "start"
-export const totalStepsEstimate = 10
+export const totalStepsEstimate = 5
 
 export const decisionTree: Record<string, TreeNode> = {
   start: {
     id: "start",
     type: "question",
-    eyebrow: "Step 1 of 10",
-    text: "Will the other organization or person create, receive, maintain, or transmit any individually identifiable health information that came from (or is being handled on behalf of) a doctor's office, hospital, health plan, or other health care provider?",
+    eyebrow: "Step 1 of 5",
+    text: "Will this other person or company see, use, or store any of your patients' health information, things like medical records, diagnoses, treatment notes, or insurance claims?",
     help: "This includes things like patient names linked to diagnoses, treatment notes, billing records, appointment details, or insurance claims. It does not include health information that has had all identifying details stripped out.",
     answers: [
-      { label: "Yes, it involves that kind of health information", next: "planSponsorCheck" },
+      { label: "Yes, it involves that kind of health information", next: "workforce" },
       { label: "No, or I'm not sure it counts as health information", next: "result_no_phi" },
     ],
   },
 
-  planSponsorCheck: {
-    id: "planSponsorCheck",
+  workforce: {
+    id: "workforce",
     type: "question",
-    eyebrow: "Step 2 of 10",
-    text: "Is the outside party actually the employer or plan sponsor of a group health plan, receiving this information to help run the health plan itself, not just routine enrollment or disenrollment numbers?",
-    help: "This is a narrower, less common scenario. An employer that sponsors a group health plan sometimes needs plan-level data, like claims data, to administer the plan. That relationship is governed by its own HIPAA provision rather than the standard business associate rules.",
+    eyebrow: "Step 2 of 5",
+    text: "Is this person actually part of your own team, an employee, intern, or volunteer working under your direct supervision, rather than a separate outside company?",
+    help: "Think of this broadly: it covers anyone who works under your organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
     answers: [
-      { label: "Yes, the employer/plan sponsor needs plan-administration data", next: "planSponsorCert" },
-      { label: "No, that doesn't describe this relationship", next: "subcontractorCheck" },
+      { label: "Yes, they're part of our own team", next: "result_workforce" },
+      { label: "No, they're a separate outside party", next: "whyTheyHaveIt" },
+    ],
+  },
+
+  whyTheyHaveIt: {
+    id: "whyTheyHaveIt",
+    type: "question",
+    eyebrow: "Step 3 of 5",
+    text: "Which of these best describes why this person or company has, or will have, this information?",
+    help: "Pick the one that fits best. \"Paid work for us\" covers anything from billing and IT to consulting, transcription, or software that stores patient data. If none of these quite fit, choose the last option and this tool will flag it for a closer look.",
+    answers: [
+      {
+        label: "They're doing paid work for us that touches this data, like billing, IT, consulting, transcription, or software",
+        next: "exceptions",
+      },
+      {
+        label: "They're another doctor, clinic, or hospital who will also be treating this same patient, for example a referral",
+        next: "result_treatment",
+      },
+      {
+        label: "They're a government agency, court, or independent researcher with their own legal right to it, not doing work for us",
+        next: "result_public_interest",
+      },
+      { label: "None of these describe it", next: "result_unclear" },
+    ],
+  },
+
+  exceptions: {
+    id: "exceptions",
+    type: "question",
+    eyebrow: "Step 4 of 5",
+    text: "A few uncommon situations change the answer. Does any of these describe this specific relationship? If not, just choose the last option.",
+    help: "These are all narrow, specific situations. If you're not sure any of them really fits, they probably don't, choose \"None of these.\"",
+    answers: [
+      {
+        label: "They only transport or briefly pass the data through, without any real ability to look at it, like a mail courier, delivery service, or an internet provider just carrying the traffic",
+        next: "result_conduit",
+      },
+      {
+        label: "They're a bank or payment processor whose only role is handling a payment the patient or member directly initiated, like a credit card charge",
+        next: "result_financial",
+      },
+      {
+        label: "All identifying details (name, address, birth date, ID numbers, and so on) have already been stripped out, so it can't be traced back to a specific person",
+        next: "deidentifiedChecklist",
+      },
+      {
+        label: "They're actually the employer that sponsors our health plan, and they need this data to help run the plan itself",
+        next: "planSponsorCert",
+      },
+      {
+        label: "None of these, it's a normal vendor or service relationship",
+        next: "subcontractorCheck",
+      },
+    ],
+  },
+
+  subcontractorCheck: {
+    id: "subcontractorCheck",
+    type: "question",
+    eyebrow: "Step 5 of 5",
+    text: "One last detail, just so the result names the right party: are you dealing directly with the hospital, doctor's office, or health plan, or with another vendor who was itself hired by one of those?",
+    help: "If the company you're working with is really a vendor's vendor, brought in to help a vendor that already has its own agreement with the hospital or health plan, HIPAA still requires an agreement, it just runs between you and that vendor instead of the hospital or health plan directly.",
+    answers: [
+      {
+        label: "Directly with the hospital, doctor's office, or health plan",
+        next: "result_baa_required",
+        flags: { isSubcontractor: false },
+      },
+      {
+        label: "With another vendor who was itself hired by one of those",
+        next: "result_baa_required",
+        flags: { isSubcontractor: true },
+      },
     ],
   },
 
   planSponsorCert: {
     id: "planSponsorCert",
     type: "question",
-    eyebrow: "Step 3 of 10",
-    text: "Have the group health plan's plan documents been amended to include HIPAA's required certifications, such as restricting the plan sponsor's use of this data to plan administration, prohibiting employment decisions based on it, and keeping it walled off from the employer's other functions?",
+    eyebrow: "Step 5 of 5",
+    text: "Have the health plan's plan documents been amended to include the required certifications, such as restricting the employer's use of this data to plan administration, prohibiting employment decisions based on it, and keeping it walled off from the employer's other functions?",
     help: "This amendment-and-certification process is what HIPAA requires here instead of a standard Business Associate Agreement.",
     answers: [
       { label: "Yes, the plan documents are amended and certified", next: "result_plan_sponsor_ok" },
@@ -63,103 +143,11 @@ export const decisionTree: Record<string, TreeNode> = {
     ],
   },
 
-  subcontractorCheck: {
-    id: "subcontractorCheck",
-    type: "question",
-    eyebrow: "Step 3 of 10",
-    text: "Is the outside party actually a business associate that is hiring this vendor as its own subcontractor, rather than the covered entity (the hospital, health plan, or provider) hiring them directly?",
-    help: "A subcontractor is a vendor's vendor: someone a business associate brings in to help with work it's doing for a covered entity. HIPAA treats subcontractors the same way it treats business associates, but it changes who needs to sign an agreement with whom.",
-    answers: [
-      {
-        label: "Yes, they'd be a subcontractor of a business associate",
-        next: "workforce",
-        flags: { isSubcontractor: true },
-      },
-      {
-        label: "No, this is directly with the covered entity",
-        next: "workforce",
-        flags: { isSubcontractor: false },
-      },
-    ],
-  },
-
-  workforce: {
-    id: "workforce",
-    type: "question",
-    eyebrow: "Step 4 of 10",
-    text: "Is the other party an employee, volunteer, trainee, or student under the direct control of the same organization, rather than a separate outside company or individual?",
-    help: "Think of \"workforce\" broadly: it covers anyone who works under the organization's direct supervision, paid or not. It does not cover an outside company or independent contractor, even a long-term one.",
-    answers: [
-      { label: "Yes, they're internal workforce", next: "result_workforce" },
-      { label: "No, they're a separate outside party", next: "function" },
-    ],
-  },
-
-  function: {
-    id: "function",
-    type: "question",
-    eyebrow: "Step 5 of 10",
-    text: "Will the outside party use or see this health information to perform a function, activity, or service for the organization, such as billing, claims processing, IT hosting, data storage, data analysis, consulting, legal or accounting work, transcription, answering service, or software that stores or processes patient data?",
-    help: "The key question is whether the outside party is doing something on behalf of the health care organization that requires touching the data, not just receiving it as a bystander.",
-    answers: [
-      { label: "Yes, they're performing a service that involves this data", next: "treatment" },
-      { label: "No, that's not what's happening here", next: "treatment_only" },
-    ],
-  },
-
-  treatment_only: {
-    id: "treatment_only",
-    type: "question",
-    eyebrow: "Step 6 of 10",
-    text: "Is the health information being shared only so another health care provider can treat the same patient, such as a referral, a transfer of care, or sending records for that patient's ongoing treatment?",
-    help: "Treatment-related sharing between providers is handled differently from a vendor relationship, because both sides are directly treating the patient rather than one performing a service for the other.",
-    answers: [
-      { label: "Yes, it's a provider-to-provider treatment disclosure", next: "result_treatment" },
-      { label: "No, none of the above describes it", next: "publicInterestNoFunction" },
-    ],
-  },
-
-  treatment: {
-    id: "treatment",
-    type: "question",
-    eyebrow: "Step 6 of 10",
-    text: "Is the only reason the outside party has this information that they're helping treat the same patient, such as a referral or shared care coordination, rather than performing an administrative, technical, or business service?",
-    help: "If the outside party is truly just another treating provider, this is a treatment disclosure. If they're also processing claims, hosting data, or providing some other service, it isn't.",
-    answers: [
-      { label: "Yes, it's purely a treatment-coordination disclosure", next: "result_treatment" },
-      { label: "No, it's a service or business function", next: "publicInterest" },
-    ],
-  },
-
-  publicInterest: {
-    id: "publicInterest",
-    type: "question",
-    eyebrow: "Step 7 of 10",
-    text: "Is the only reason this outside party has (or will have) the information that they're a public health authority, health oversight agency, law enforcement, a court, or a researcher receiving it under a recognized research exception, such as an authorization, an IRB or privacy board waiver, or a limited data set agreement, rather than performing a service for your organization?",
-    help: "These disclosures are permitted by HIPAA in their own right and don't turn the recipient into a business associate, because they aren't acting on your organization's behalf. They're exercising their own independent authority or an exception that applies directly to the disclosure.",
-    answers: [
-      { label: "Yes, it's one of those permitted disclosures", next: "result_public_interest" },
-      { label: "No, none of those describe it", next: "deidentifiedChecklist" },
-    ],
-  },
-
-  publicInterestNoFunction: {
-    id: "publicInterestNoFunction",
-    type: "question",
-    eyebrow: "Step 7 of 10",
-    text: "Is the only reason this outside party has (or will have) the information that they're a public health authority, health oversight agency, law enforcement, a court, or a researcher receiving it under a recognized research exception, such as an authorization, an IRB or privacy board waiver, or a limited data set agreement?",
-    help: "These disclosures are permitted by HIPAA in their own right, independent of any business associate or treatment relationship.",
-    answers: [
-      { label: "Yes, it's one of those permitted disclosures", next: "result_public_interest" },
-      { label: "No, none of those describe it", next: "result_unclear" },
-    ],
-  },
-
   deidentifiedChecklist: {
     id: "deidentifiedChecklist",
     type: "checklist",
-    eyebrow: "Step 8 of 10",
-    text: "Under HIPAA's Safe Harbor method, data only counts as de-identified once every one of these identifiers has been removed for the individual and for their relatives, employers, and household members. Check off each one that has actually been removed:",
+    eyebrow: "Step 5 of 5",
+    text: "HIPAA has a specific test for this, called the Safe Harbor method. Data only counts as de-identified once every one of these has been removed for the individual and for their relatives, employers, and household members. Check off each one that has actually been removed:",
     help: "Removing just a name usually isn't enough. If even one of these categories remains and could point back to a specific person, the data is still PHI and this exception doesn't apply.",
     items: [
       "Names",
@@ -184,31 +172,7 @@ export const decisionTree: Record<string, TreeNode> = {
     confirmText:
       "The organization also has no actual knowledge that the remaining information could still be used, alone or combined with other data, to identify the person.",
     allCheckedNext: "result_deidentified",
-    notAllCheckedNext: "conduit",
-  },
-
-  conduit: {
-    id: "conduit",
-    type: "question",
-    eyebrow: "Step 9 of 10",
-    text: "Does the outside party's role consist only of transporting or briefly routing the data, without any routine or ongoing ability to access, view, or use its contents, like a mail courier, shipping company, or an internet service provider that just carries the traffic through?",
-    help: "This exception is narrow. A cloud storage, hosting, backup, or file-sharing vendor almost always has enough access to the data (even if it's encrypted, and even if they say they never look at it) that they don't qualify as a mere conduit. When in doubt, assume this doesn't apply.",
-    answers: [
-      { label: "Yes, transport only, no real access to the data", next: "result_conduit" },
-      { label: "No, they can access or store the data more than momentarily", next: "financial" },
-    ],
-  },
-
-  financial: {
-    id: "financial",
-    type: "question",
-    eyebrow: "Step 10 of 10",
-    text: "Is the outside party a bank or payment processor whose only role is processing a payment that the patient or health plan member directly initiated, like a credit card or check payment for a bill, rather than performing any other health care-related function?",
-    help: "This narrow exception covers ordinary financial institutions clearing a payment transaction. It does not cover a billing company, revenue cycle vendor, or payment platform that also touches claims or patient account data for the provider.",
-    answers: [
-      { label: "Yes, pure payment processing only", next: "result_financial" },
-      { label: "No, that doesn't describe their role", next: "result_baa_required" },
-    ],
+    notAllCheckedNext: "result_baa_required",
   },
 
   result_no_phi: {
