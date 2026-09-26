@@ -27,7 +27,7 @@ export function ResultCard({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.25, ease: "easeOut" }}
-      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-8 print:border-0 print:shadow-none dark:border-slate-800 dark:bg-slate-900"
+      className="rounded-2xl border border-slate-200 bg-white p-6 shadow-lg shadow-slate-200/60 sm:p-8 print:border-0 print:shadow-none dark:border-slate-700 dark:bg-slate-900 dark:shadow-slate-950/60"
     >
       <div className="hidden print:mb-6 print:block">
         <p className="text-xs font-medium tracking-wide text-slate-500 uppercase">
