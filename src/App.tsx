@@ -1,5 +1,6 @@
 import { AnimatePresence } from "motion/react"
 import { ChecklistQuestion } from "./components/ChecklistQuestion"
+import { EntityBadge } from "./components/EntityBadge"
 import { Header } from "./components/Header"
 import { ProgressBar } from "./components/ProgressBar"
 import { QuestionCard } from "./components/QuestionCard"
@@ -24,6 +25,8 @@ function App() {
       <Header />
 
       <main className="mx-auto w-full max-w-2xl px-4 pb-16">
+        <EntityBadge flags={flags} />
+
         <div className="no-print mb-6">
           <ProgressBar progress={currentNode.type === "result" ? 100 : progress} />
         </div>

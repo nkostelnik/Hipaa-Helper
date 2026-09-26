@@ -111,28 +111,46 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "confirmProvider",
     type: "question",
     text: "OK, sounds like you're a health care provider.",
-    answers: [{ label: "Continue", next: "start", flags: { isUserBA: false } }],
+    answers: [
+      {
+        label: "Continue",
+        next: "start",
+        flags: { isUserBA: false, classified: true, entityIsProvider: true },
+      },
+    ],
   },
 
   confirmHealthPlan: {
     id: "confirmHealthPlan",
     type: "question",
     text: "OK, sounds like you're a health plan.",
-    answers: [{ label: "Continue", next: "start", flags: { isUserBA: false } }],
+    answers: [
+      {
+        label: "Continue",
+        next: "start",
+        flags: { isUserBA: false, classified: true, entityIsHealthPlan: true },
+      },
+    ],
   },
 
   confirmClearinghouse: {
     id: "confirmClearinghouse",
     type: "question",
     text: "OK, sounds like you're a health care clearinghouse.",
-    answers: [{ label: "Continue", next: "start", flags: { isUserBA: false } }],
+    answers: [
+      {
+        label: "Continue",
+        next: "start",
+        flags: { isUserBA: false, classified: true, entityIsClearinghouse: true },
+      },
+    ],
   },
 
   confirmBA: {
     id: "confirmBA",
     type: "question",
     text: "OK, sounds like you're a business associate rather than a covered entity yourself.",
-    answers: [{ label: "Continue", next: "start", flags: { isUserBA: true } }],
+    answers: [{ label: "Continue", next: "start", flags: { isUserBA: true, classified: true } }],
   },
 
   start: {
