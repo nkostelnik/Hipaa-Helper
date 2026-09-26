@@ -12,10 +12,15 @@ import type { TreeNode } from "./types"
  *      rather than one combined question or a self-diagnosis of "are you
  *      a business associate" (deciding that is the point of the tool, not
  *      something to ask the user to already know). Saying no to all three
- *      means the user may be a business associate to a covered entity
- *      instead, which the rest of the tree then works out. Each answer is
- *      followed by a one-line confirmation ("OK, sounds like you're a
- *      health care provider") before moving on, so the user sees their
+ *      leads to a fourth, equally factual question, whether the user does
+ *      work involving health information on behalf of a covered entity or
+ *      another business associate, which is what actually makes someone a
+ *      business associate rather than something to assume by elimination.
+ *      Saying no to that too routes to result_not_covered, since HIPAA's
+ *      business associate rules don't reach an organization that is
+ *      neither. Each "yes" answer is followed by a one-line confirmation
+ *      ("OK, sounds like you're a health care provider") before moving
+ *      on, so the user sees their
  *      classification land before the substantive questions start.
  *   1. Is protected health information (PHI) involved at all?
  *   2. Is the recipient part of the covered entity's own workforce?
@@ -85,7 +90,20 @@ export const decisionTree: Record<string, TreeNode> = {
     text: "Are you a health care clearinghouse: an entity that processes health information it receives from another entity into a standard format, or the reverse, such as a billing or repricing service?",
     answers: [
       { label: "Yes, that's us", next: "confirmClearinghouse" },
-      { label: "No, none of those describe us", next: "confirmBA" },
+      { label: "No, none of those describe us", next: "isBusinessAssociate" },
+    ],
+  },
+
+  isBusinessAssociate: {
+    id: "isBusinessAssociate",
+    type: "question",
+    eyebrow: "About your organization",
+    intro: "Not a covered entity, then. Let's check one more thing before moving on.",
+    text: "Do you perform a function, activity, or service involving health information on behalf of a health care provider, health plan, or clearinghouse, or on behalf of another business associate that already works for one of those, things like billing, IT, consulting, transcription, or software?",
+    help: "This is what actually makes an organization a business associate: not being a covered entity yourself, but doing work that involves health information on behalf of one, whether directly or one step removed through another vendor.",
+    answers: [
+      { label: "Yes, that's us", next: "confirmBA" },
+      { label: "No, that's not us either", next: "result_not_covered" },
     ],
   },
 
@@ -113,7 +131,7 @@ export const decisionTree: Record<string, TreeNode> = {
   confirmBA: {
     id: "confirmBA",
     type: "question",
-    text: "OK, sounds like you may be a business associate to one of those, rather than a covered entity yourself.",
+    text: "OK, sounds like you're a business associate rather than a covered entity yourself.",
     answers: [{ label: "Continue", next: "start", flags: { isUserBA: true } }],
   },
 
@@ -259,6 +277,24 @@ export const decisionTree: Record<string, TreeNode> = {
     nextSteps: [
       "Double-check that no identifiable health data (even indirectly, like a name plus an appointment time) is actually changing hands.",
       "If the answer is close, treat the data as PHI and re-run this tool, or ask counsel to confirm.",
+    ],
+  },
+
+  result_not_covered: {
+    id: "result_not_covered",
+    type: "result",
+    baaRequired: false,
+    title: "HIPAA's business associate rules may not reach your organization",
+    summary: "A Business Associate Agreement is only ever required from a covered entity or a business associate. Based on your answers, your organization is neither, so HIPAA doesn't require you to get one from this outside party, though that classification is worth double-checking.",
+    explanation:
+      "HIPAA's business associate rules attach only to covered entities (health care providers who bill electronically, health plans, and health care clearinghouses) and their business associates (organizations performing a function, activity, or service involving health information on behalf of one). An organization that is neither doesn't have a HIPAA-driven duty to sign a BAA with its own vendors, even if those vendors happen to touch health-related data. That said, this classification is easy to get wrong: an app, platform, or service that handles health information on behalf of a covered entity, even informally, without a fee, or without fully realizing it, can become a business associate in its own right. Don't rely on this result alone if there's any real chance your organization is doing work for a covered entity or another business associate.",
+    citations: [
+      { cite: "45 CFR § 160.103", note: "definitions of \"covered entity\" and \"business associate\"" },
+      { cite: "45 CFR § 164.502(e)(1)(i)-(ii)", note: "the BAA requirement runs from a covered entity or a business associate to its own vendor" },
+    ],
+    nextSteps: [
+      "Double-check that your organization isn't unintentionally acting as a business associate, for example by receiving health information to perform a function on behalf of a covered entity.",
+      "If you're not sure, treat this as a case for a quick check with privacy counsel rather than a final answer.",
     ],
   },
 
