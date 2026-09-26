@@ -313,7 +313,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_no_phi",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: this doesn't involve protected health information",
+    title: "No, a BAA is not required: this doesn't involve protected health information",
     summary: "A Business Associate Agreement is only required when protected health information (PHI) is involved. Based on your answer, it isn't here.",
     explanation:
       "HIPAA's Privacy and Security Rules, and the BAA requirement in particular, are triggered by the use or disclosure of protected health information, meaning individually identifiable health information held or transmitted by a covered entity or its business associate. If no such information is involved, there is no business associate relationship to document, regardless of how the parties otherwise relate to each other.",
@@ -331,7 +331,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_not_covered",
     type: "result",
     baaRequired: false,
-    title: "HIPAA's business associate rules may not reach your organization",
+    title: "No, a BAA is not required: HIPAA's business associate rules may not reach your organization",
     summary: "A Business Associate Agreement is only ever required from a covered entity or a business associate. Based on your answers, your organization is neither, so HIPAA doesn't require you to get one from this outside party, though that classification is worth double-checking.",
     explanation:
       "HIPAA's business associate rules attach only to covered entities (health care providers who bill electronically, health plans, and health care clearinghouses) and their business associates (organizations performing a function, activity, or service involving health information on behalf of one). An organization that is neither doesn't have a HIPAA-driven duty to sign a BAA with its own vendors, even if those vendors happen to touch health-related data. That said, this classification is easy to get wrong: an app, platform, or service that handles health information on behalf of a covered entity, even informally, without a fee, or without fully realizing it, can become a business associate in its own right. Don't rely on this result alone if there's any real chance your organization is doing work for a covered entity or another business associate.",
@@ -349,7 +349,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_plan_sponsor_ok",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: this is a certified plan sponsor arrangement",
+    title: "No, a BAA is not required: this is a certified plan sponsor arrangement",
     summary: "A group health plan may share PHI with its plan sponsor for plan administration once the plan documents are amended and certified, this substitutes for a Business Associate Agreement.",
     explanation:
       "HIPAA treats a group health plan's disclosures to its own plan sponsor as a special case, governed by plan document amendments and a certification from the plan sponsor rather than a standard BAA. Once those safeguards are in place (restricting use to plan administration, barring employment-related decisions based on the data, and firewalling it from the employer's other functions), the plan may share the data described in those documents.",
@@ -366,7 +366,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_plan_sponsor_needed",
     type: "result",
     baaRequired: true,
-    title: "Action needed: plan document amendment and certification required, not a standard BAA",
+    title: "Not a standard BAA question: plan document amendment and certification are required instead",
     summary: "A group health plan cannot share this data with its plan sponsor for plan administration until the plan documents are amended and the plan sponsor certifies compliance.",
     explanation:
       "This is not a business associate relationship, so a standard BAA is not the right tool. Instead, HIPAA requires the plan documents to be amended to include specific restrictions, and the plan sponsor must certify it will comply with them, before this kind of plan-administration data can be shared.",
@@ -383,7 +383,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_workforce",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: this is an internal workforce member",
+    title: "No, a BAA is not required: this is an internal workforce member",
     summary: "Employees, volunteers, and trainees under an organization's direct control are part of its own workforce, not a separate business associate.",
     explanation:
       "A Business Associate Agreement documents a relationship between two separate legal entities. Members of a covered entity's own workforce are already bound by that organization's HIPAA policies, training, and sanctions, so no separate contract is required. This holds even if the workforce member routinely handles PHI as part of their job.",
@@ -401,7 +401,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_treatment",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: this is a treatment disclosure",
+    title: "No, a BAA is not required: this is a treatment disclosure",
     summary: "Sharing PHI between health care providers for the treatment of the same patient falls under HIPAA's treatment exception, not the business associate rules.",
     explanation:
       "HIPAA allows covered entities to disclose PHI for treatment purposes, including referrals and coordination of care between providers, without a Business Associate Agreement. The rationale is that a treating provider is not performing a service on behalf of the referring provider. This exception is limited to genuine treatment coordination; if the same party is also handling billing, hosting, or another administrative function, that separate function may still require a BAA.",
@@ -419,7 +419,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_public_interest",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: this is a permitted public-interest or research disclosure",
+    title: "No, a BAA is not required: this is a permitted public-interest or research disclosure",
     summary: "Disclosures to public health authorities, oversight agencies, courts, or researchers under a recognized exception are permitted directly by HIPAA and don't create a business associate relationship.",
     explanation:
       "A public health authority investigating an outbreak, a court enforcing a valid order, or a researcher relying on an authorization, an IRB or privacy board waiver, or a limited data set agreement is not performing a function on your organization's behalf, they're exercising independent authority or a standalone HIPAA exception. That means the business associate rules, including the BAA requirement, don't apply to that disclosure. A limited data set shared for research, public health, or health care operations still needs a separate, lighter-weight data use agreement, which is not the same thing as a BAA.",
@@ -437,7 +437,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_deidentified",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: the data meets the Safe Harbor de-identification standard",
+    title: "No, a BAA is not required: the data meets the Safe Harbor de-identification standard",
     summary: "Information that meets HIPAA's Safe Harbor standard is no longer protected health information, so the business associate rules don't apply to it.",
     explanation:
       "HIPAA offers two ways to de-identify data: an expert formally certifies the re-identification risk is very small, or the organization strips all 18 Safe Harbor identifier categories and has no actual knowledge the remaining data could still identify someone. Based on your checklist, that standard is met here. Once data is properly de-identified, it falls outside HIPAA's protections entirely, including the BAA requirement, for as long as it stays de-identified.",
@@ -455,7 +455,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_conduit",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: this fits the narrow conduit exception",
+    title: "No, a BAA is not required: this fits the narrow conduit exception",
     summary: "Entities that merely transport data in transit, without meaningful access to it, are not business associates.",
     explanation:
       "The conduit exception covers services like postal mail, courier companies, and internet service providers that move data through without accessing it beyond what's needed for the transport itself. HHS has repeatedly stressed this exception is narrow: any access that is more than transient or incidental, such as a cloud storage or hosting vendor that could view or retain the data, takes the arrangement out of the exception, even if the data happens to be encrypted.",
@@ -473,7 +473,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_financial",
     type: "result",
     baaRequired: false,
-    title: "No BAA needed: ordinary payment processing",
+    title: "No, a BAA is not required: ordinary payment processing",
     summary: "A financial institution merely processing a payment the patient initiated is not acting as a business associate for that function.",
     explanation:
       "HHS has explained that a financial institution is not a business associate when it is simply processing consumer-conducted financial transactions, such as clearing a check or a credit card payment, using the account information necessary to do that. This is narrow: a billing company, clearinghouse, or payment platform that also touches claims data or patient account details for the health care organization is a business associate for that broader role.",
@@ -491,7 +491,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_baa_required",
     type: "result",
     baaRequired: true,
-    title: "A BAA is required",
+    title: "Yes, a BAA is required",
     summary: "This outside party creates, receives, maintains, or transmits PHI to perform a service on behalf of the organization, and no exception applies.",
     explanation:
       "This relationship fits HIPAA's definition of a business associate: an outside person or entity that performs a function, activity, or service involving PHI on behalf of a covered entity (or another business associate). A written Business Associate Agreement must be in place before PHI is shared. If the outside party will delegate any part of this work to its own vendors who will also touch the PHI, those subcontractors are themselves treated as business associates and need their own BAA with the party that hired them.",
@@ -512,7 +512,7 @@ export const decisionTree: Record<string, TreeNode> = {
     id: "result_unclear",
     type: "result",
     baaRequired: false,
-    title: "This needs a closer look",
+    title: "Unclear: this needs a closer look before we can say yes or no",
     summary: "Based on your answers, this doesn't clearly fit the business associate definition, but it also doesn't clearly fit a standard exception. Treat this as a case for direct review rather than a final answer.",
     explanation:
       "HIPAA's business associate definition turns on whether an outside party is performing a function or service on behalf of a covered entity that involves PHI. If that's not happening, and it's also not a treatment disclosure or a permitted public-interest disclosure, the relationship may still fall under a separate HIPAA provision this simplified tool doesn't fully cover, or it may not be a HIPAA-regulated disclosure at all.",
