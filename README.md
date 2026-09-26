@@ -4,6 +4,8 @@ A plain-language decision tree that tells you whether a HIPAA Business Associate
 
 Answer a short series of questions about who the parties are and what they do with protected health information. The tool walks you to a determination, explains the reasoning, cites the governing regulation, and lists concrete next steps.
 
+**Use it now: [nkostelnik.github.io/Hipaa-Helper](https://nkostelnik.github.io/Hipaa-Helper/)**
+
 ## What it does
 
 - **Guided questions.** Single-choice questions and checklist steps, written in ordinary English rather than regulatory language.
