@@ -69,7 +69,7 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "About your organization",
     intro: "Let's find out who you are in this picture.",
-    text: "Do you provide medical or health services, and bill or get paid for them in the normal course of business, like a doctor's office, hospital, clinic, or pharmacy?",
+    text: "Do you charge for medical or health services, such as a doctor's office, hospital, clinic, or pharmacy?",
     answers: [
       { label: "Yes, that's us", next: "confirmProvider" },
       { label: "No, that's not us", next: "isHealthPlan" },
@@ -81,7 +81,7 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "About your organization",
     intro: "Not that one. Let's check the next category.",
-    text: "Do you provide or pay the cost of medical care for a group of people, like a health insurer, an HMO, Medicare, Medicaid, or a similar program?",
+    text: "Do you pay the cost of medical care for a group of people, like a health insurer, an HMO, Medicare, Medicaid, or similar program?",
     answers: [
       { label: "Yes, that's us", next: "confirmHealthPlan" },
       { label: "No, that's not us", next: "isClearinghouse" },
@@ -93,7 +93,7 @@ export const decisionTree: Record<string, TreeNode> = {
     type: "question",
     eyebrow: "About your organization",
     intro: "Not that one either. One more category to check.",
-    text: "Do you process health information you receive from another organization into a standard format, or the reverse, such as a billing or repricing service?",
+    text: "Do you convert health billing information into a standard format for other companies, or back again, like a medical claims clearinghouse or billing service?",
     answers: [
       { label: "Yes, that's us", next: "confirmClearinghouse" },
       { label: "No, none of those describe us", next: "isBusinessAssociate" },
