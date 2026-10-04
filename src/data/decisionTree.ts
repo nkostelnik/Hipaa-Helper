@@ -443,7 +443,7 @@ export const decisionTree: Record<string, TreeNode> = {
     explanation:
       "A Business Associate Agreement documents a relationship between two separate legal entities. Members of an organization's own workforce, whether that organization is a covered entity or a business associate, are already bound by that organization's HIPAA policies, training, and sanctions, so no separate contract is required. This holds even if the workforce member routinely handles PHI as part of their job.",
     citations: [
-      { cite: "45 CFR § 160.103", note: "definition of \"workforce\"" },
+      { cite: "45 CFR § 160.103", note: "definition of \"workforce\", and the \"business associate\" definition, which excludes a person acting as a member of the workforce" },
       { cite: "45 CFR § 164.530(b), (c)", note: "training and safeguard duties an organization owes its own workforce" },
     ],
     nextSteps: [
@@ -461,7 +461,7 @@ export const decisionTree: Record<string, TreeNode> = {
     explanation:
       "HIPAA allows covered entities to disclose PHI for treatment purposes, including referrals and coordination of care between providers, without a Business Associate Agreement. The rationale is that a treating provider is not performing a service on behalf of the referring provider. This exception is limited to genuine treatment coordination; if the same party is also handling billing, hosting, or another administrative function, that separate function may still require a BAA.",
     citations: [
-      { cite: "45 CFR § 160.103", note: "definition of \"business associate\" excludes a health care provider receiving disclosures from a covered entity concerning the treatment of the individual" },
+      { cite: "45 CFR § 160.103", note: "paragraph (4)(i) of the definition of \"business associate\" excludes a health care provider with respect to disclosures by a covered entity concerning the treatment of the individual" },
       { cite: "45 CFR § 164.506(c)", note: "permitted uses and disclosures for treatment" },
     ],
     nextSteps: [
@@ -515,7 +515,7 @@ export const decisionTree: Record<string, TreeNode> = {
     explanation:
       "The conduit exception covers services like postal mail, courier companies, and internet service providers that move data through without accessing it beyond what's needed for the transport itself. HHS has repeatedly stressed this exception is narrow: any access that is more than transient or incidental, such as a cloud storage or hosting vendor that could view or retain the data, takes the arrangement out of the exception, even if the data happens to be encrypted.",
     citations: [
-      { cite: "45 CFR § 160.103", note: "definition of \"business associate\", conduit language" },
+      { cite: "45 CFR § 160.103", note: "paragraph (3)(i) of the definition of \"business associate\" covers a data transmission service that needs routine access to PHI, which marks the limit of the conduit exception" },
       { cite: "78 Fed. Reg. 5566, 5571", note: "HHS Omnibus Rule preamble (Jan. 25, 2013), explaining the conduit exception" },
     ],
     nextSteps: [
@@ -551,9 +551,10 @@ export const decisionTree: Record<string, TreeNode> = {
     explanation:
       "This relationship fits HIPAA's definition of a business associate: an outside person or entity that performs a function, activity, or service involving PHI on behalf of a covered entity (or another business associate). A written Business Associate Agreement must be in place before PHI is shared. If the outside party will delegate any part of this work to its own vendors who will also touch the PHI, those subcontractors are themselves treated as business associates and need their own BAA with the party that hired them.",
     citations: [
-      { cite: "45 CFR § 160.103", note: "definition of \"business associate\" and \"subcontractor\"" },
+      { cite: "45 CFR § 160.103", note: "definition of \"business associate\" (paragraphs (1) and (3)(iii)) and \"subcontractor\"" },
       { cite: "45 CFR § 164.502(e)(1)(i)", note: "PHI may not be disclosed to a business associate without satisfactory assurances (a BAA)" },
       { cite: "45 CFR § 164.502(e)(1)(ii)", note: "the same applies when a business associate discloses PHI to its own subcontractor" },
+      { cite: "45 CFR § 164.502(e)(2)", note: "the assurances must be documented in a written contract that meets § 164.504(e)" },
       { cite: "45 CFR § 164.504(e)", note: "required contents of a Business Associate Agreement" },
     ],
     nextSteps: [
